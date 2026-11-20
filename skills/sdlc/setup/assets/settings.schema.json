@@ -79,18 +79,21 @@
       "properties": {
         "tracker": {
           "enum": [
-            "github"
+            "github",
+            "jira",
+            "linear"
           ],
           "default": "github",
-          "description": "The tracker adapter that the scripts use."
+          "description": "The tracker adapter that the scripts use. Only github has scripts so far."
         },
         "estimation": {
           "enum": [
             "none",
+            "tshirt",
             "fibonacci"
           ],
-          "default": "none",
-          "description": "An optional effort estimate beside the size."
+          "default": "tshirt",
+          "description": "The effort estimate. tshirt uses the size labels XS to XL, fibonacci uses story points."
         }
       }
     },

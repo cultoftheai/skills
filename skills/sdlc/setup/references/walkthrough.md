@@ -7,8 +7,8 @@ Detect first. Each question then shows the detected value, or the schema default
 | Key | How to detect |
 |---|---|
 | `default_branch` | `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`. If that fails, `git symbolic-ref --short refs/remotes/origin/HEAD` without the `origin/` part. |
-| `issue.tracker` | `github` when the `origin` URL has the host `github.com`. Any other host: no tracker. |
-| `issue.estimation` | `fibonacci` when the repo already has labels for story points (`gh label list`). If not, `none`. |
+| `issue.tracker` | `github` when the `origin` URL has the host `github.com`. Any other host: nothing detected. |
+| `issue.estimation` | `fibonacci` when the repo already has labels for story points (`gh label list`). If not, `tshirt`. |
 | `guides.development` | A file named `DEVELOPMENT.md`, `CONTRIBUTING.md`, `CONVENTIONS.md` or `STYLEGUIDE.md` |
 | `guides.code_review` | A file named `CODE_REVIEW.md`, `REVIEW.md` or `REVIEWING.md` |
 | `guides.qa` | A file named `QA.md` or `TESTING.md` |
@@ -24,6 +24,8 @@ Detect first. Each question then shows the detected value, or the schema default
 Ask in this order. Each group is one message.
 
 1. Repository: `default_branch`, `issue.tracker`, `issue.estimation`.
+   - Ask `issue.tracker` even when it was detected. Offer GitHub (marked as detected when it was), Jira and Linear, and let the person type another tracker. A typed tracker that the schema does not allow is a hard stop: name it and go to step 10. For Jira and Linear, say that the labels, scripts and on-merge action exist only for GitHub so far.
+   - `issue.estimation`: `tshirt` estimates with the size labels XS to XL, `fibonacci` with story points, `none` not at all.
 2. Guides: `guides.development`, `guides.code_review`, `guides.qa`, `guides.labeling`. Tell the person that a skill with a `null` guide runs without one and says so.
 3. Tasks and specs: `task.path`, `task.keep` (keep task folders after merge), `spec.storage` (where the spec lives), `spec.review` (whether specs are reviewed).
 4. Review: `review.resolve` (who resolves a fixed thread), `review.prefix` (the mark on agent replies).

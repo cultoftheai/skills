@@ -8,7 +8,7 @@ argument-hint: [--auto]
 
 - **(cli tool) git** [Must] - Reads the repository and its remote.
 - **(cli tool) gh** [Must] - Reads the default branch and the labels, and creates labels.
-- **(cli tool) python3** [Must] - Runs the scripts in `scripts/`.
+- **(cli tool) jq** [Must] - `validate_settings.sh` reads the settings file with it.
 
 ## Flags
 
@@ -44,15 +44,15 @@ flowchart TD
 ## Flow steps
 
 1. **Check prerequisites** - Record each result for the report: `git rev-parse --show-toplevel` (a Git repo), `gh auth status` (an authenticated `gh`), `git remote get-url origin` (the tracker). If `--auto` is passed, read `references/auto_mode.md`.
-2. **Can continue?** - If there is no Git repo, or the remote is not on a tracker that `assets/settings.schema.json` allows, go to step 10 and name the cause. If not, go to step 3.
-3. **Read current settings** - If `.sdlc/settings.json` exists, run `python3 <skill-dir>/scripts/validate_settings.py`. `<skill-dir>` is the directory of this SKILL.md. Keep every valid value. Each line it prints names a key to ask about. If it prints `valid`, go to step 7.
+2. **Can continue?** - If there is no Git repo, go to step 10 and name the cause. If not, go to step 3.
+3. **Read current settings** - If `.sdlc/settings.json` exists, run `sh <skill-dir>/scripts/validate_settings.sh`. `<skill-dir>` is the directory of this SKILL.md. Keep every valid value. Each line it prints names a key to ask about. If it prints `valid`, go to step 7.
 4. **Detect values** - Read `references/walkthrough.md`. Detect each key that step 3 did not keep.
-5. **Ask the groups** - Ask the six groups in `references/walkthrough.md` in order, one group for each message. Show the detected value or the schema default for each key. Ask only what detection could not answer. Skip a group that has no key left to ask.
-6. **Write and validate** - Show the finished file and get a yes. Write `.sdlc/settings.json`, then run `validate_settings.py` on it. If it prints errors, fix each named key and validate again.
-7. **Offer labels** - Run `python3 <skill-dir>/scripts/labels.py --dry-run`. If it lists labels, ask yes or no. On yes, run it without `--dry-run`.
-8. **Offer scripts** - Ask yes or no. On yes, run `python3 <skill-dir>/scripts/install.py <repo-root>`.
-9. **Offer on-merge action** - Only when the scripts are in `.sdlc/scripts/`, ask yes or no. On yes, run `install.py <repo-root> --on-merge`.
-10. **Report** - Give the report from the Output section. If `.sdlc/scripts/next_step.py` exists, run `python3 .sdlc/scripts/next_step.py - --after setup`, with `--auto` when it was passed, and print its output as the last line. If not, read `references/harness.md` and print the fallback `Next:` line for the current harness.
+5. **Ask the groups** - Ask the six groups in `references/walkthrough.md` in order, one group for each message. Show the detected value or the schema default for each key. Ask only what detection could not answer, and always ask `issue.tracker`. Skip a group that has no key left to ask.
+6. **Write and validate** - Show the finished file and get a yes. Write `.sdlc/settings.json`, then run `validate_settings.sh` on it. If it prints errors, fix each named key and validate again.
+7. **Offer labels** - If `issue.tracker` is not `github`, go to step 10. Steps 7 to 9 exist only for GitHub so far. Run `sh <skill-dir>/scripts/labels.sh --dry-run`. If it lists labels, ask yes or no. On yes, run it without `--dry-run`.
+8. **Offer scripts** - Ask yes or no. On yes, run `sh <skill-dir>/scripts/install.sh <repo-root>`.
+9. **Offer on-merge action** - Only when the scripts are in `.sdlc/scripts/`, ask yes or no. On yes, run `sh <skill-dir>/scripts/install.sh <repo-root> --on-merge`.
+10. **Report** - Give the report from the Output section. If `.sdlc/scripts/next_step.sh` exists, run `sh .sdlc/scripts/next_step.sh - --after setup`, with `--auto` when it was passed, and print its output as the last line. If not, read `references/harness.md` and print the fallback `Next:` line for the current harness.
 
 ## Rules
 
@@ -65,4 +65,4 @@ flowchart TD
 ## Output
 
 - `.sdlc/settings.json`, and, when accepted, the labels, `.sdlc/scripts/` and `.github/workflows/sdlc-on-merge.yml`.
-- A report: each prerequisite and its result (Git repo, `gh` login, tracker, and whether the `research.engine` tool is connected), each key as kept, detected, default or chosen, each offer as done, declined or left to do, and the `Next:` line last.
+- A report: each prerequisite and its result (Git repo, `gh` login, tracker, and whether the `research.engine` tool is connected), each key as kept, detected, default or chosen, each offer as done, declined, left to do or not available for the tracker, and the `Next:` line last.
