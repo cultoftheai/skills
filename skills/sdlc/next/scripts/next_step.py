@@ -17,7 +17,7 @@ Usage: next_step.py <issue-or-pr|-> [--after <skill>] [--result pass|fail] [--au
 
 When no skill can run yet, the line says what it waits for or what a person
 must do, then the command to run after that. Without .sdlc/settings.json the
-line is "Next: /setup".
+line is "Next: /sdlc:setup" in Claude Code.
 
 Exit code 0 when it printed a Next: line, 2 on bad arguments, 1 when gh,
 git or a helper script fails (it still prints a Next: line).
@@ -35,7 +35,7 @@ from pathlib import Path
 SETTINGS = Path(".sdlc/settings.json")
 SKILLS = ("setup", "frame", "slice", "shape", "build", "prove", "submit", "review", "respond", "document", "ship", "retro")
 STAGES = ("ready", "shaped", "in-progress", "review", "done", "blocked")
-COMMAND_PREFIX = {"claude-code": "/", "codex": "$"}
+COMMAND_PREFIX = {"claude-code": "/sdlc:", "codex": "$"}
 EDIT = '"<the edit in words>"'
 FIRST_REQUEST = '"<your first request>"'
 NEXT_REQUEST = '"<your next request>"'

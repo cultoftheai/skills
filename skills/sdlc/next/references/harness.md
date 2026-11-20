@@ -2,8 +2,8 @@
 
 ## Claude Code
 
-- `next_step.py` finds Claude Code from the `CLAUDECODE` environment variable, which Claude Code sets in its shell. Commands have the form `/<skill> <args>`.
-- In the brief, tell the subagent to run the skill with the `Skill` tool, for example `skill: "shape"` and `args: "12 --auto"`.
+- `next_step.py` finds Claude Code from the `CLAUDECODE` environment variable, which Claude Code sets in its shell. The skills are the `sdlc` plugin, so commands have the form `/sdlc:<skill> <args>`.
+- In the brief, tell the subagent to run the skill with the `Skill` tool, for example `skill: "sdlc:shape"` and `args: "12 --auto"`.
 - A subagent cannot ask the person anything. Tell it to stop and return the question as its final message.
 
 ## Codex
