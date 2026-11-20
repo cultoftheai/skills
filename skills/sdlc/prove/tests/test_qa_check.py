@@ -24,13 +24,18 @@ def qa_text(commit=HEAD, result="pass"):
     )
 
 
-class FakeGit:
-    """A git runner that answers from a fixed repository state."""
+def commit(*files, docs_only=False):
+    """Return a later commit as (files, trailer value)."""
+    return list(files), "true" if docs_only else ""
 
-    def __init__(self, root, ancestor=True, changed=()):
+
+class FakeGit:
+    """A git runner that answers from a fixed repository state. later holds the commits after OLD, oldest first."""
+
+    def __init__(self, root, ancestor=True, later=()):
         self.root = root
         self.ancestor = ancestor
-        self.changed = changed
+        self.later = {f"{index:040x}": change for index, change in enumerate(later, start=1)}
 
     def __call__(self, *args):
         """Answer the git calls that qa_check makes."""
@@ -42,9 +47,20 @@ class FakeGit:
             return str(self.root)
         if args[0] == "merge-base":
             return args[1] if self.ancestor else "c" * 40
+        if args[0] == "rev-list":
+            return "\n".join(reversed(list(self.later)))
         if args[:2] == ("diff", "--name-only"):
-            return "\n".join(self.changed)
+            return "\n".join(self.later[args[3]][0])
+        if args[:2] == ("log", "-1"):
+            self.assert_trailer_format(args[2])
+            return self.later[args[3]][1]
         raise AssertionError(f"unexpected git call {args}")
+
+    @staticmethod
+    def assert_trailer_format(format_arg):
+        """Fail when the trailer is not read through git's trailer format."""
+        if format_arg != "--format=%(trailers:key=SDLC-Docs-Only,valueonly)":
+            raise AssertionError(f"unexpected format {format_arg}")
 
     @staticmethod
     def resolve(commit):
@@ -102,17 +118,38 @@ class QaCheckTest(unittest.TestCase):
 
     def test_stale_commit_with_code_change(self):
         self.write_qa(qa_text(commit=OLD))
-        git = FakeGit(self.root, changed=[".sdlc/task/5/QA.md", "src/app.py"])
+        git = FakeGit(self.root, later=[commit(".sdlc/task/5/QA.md"), commit("src/app.py")])
         self.assert_fails("also changes src/app.py", git)
 
     def test_old_commit_with_only_task_folder_changes(self):
         self.write_qa(qa_text(commit=OLD))
-        git = FakeGit(self.root, changed=[".sdlc/task/5/QA.md"])
+        git = FakeGit(self.root, later=[commit(".sdlc/task/5/QA.md")])
         self.assertEqual(qa_check.check(str(self.task), git), OLD)
+
+    def test_docs_only_trailer_commit_is_accepted(self):
+        self.write_qa(qa_text(commit=OLD))
+        git = FakeGit(self.root, later=[commit("docs/guide.md", "README.md", docs_only=True)])
+        self.assertEqual(qa_check.check(str(self.task), git), OLD)
+
+    def test_commit_without_trailer_outside_task_folder_is_rejected(self):
+        self.write_qa(qa_text(commit=OLD))
+        git = FakeGit(self.root, later=[commit("docs/guide.md")])
+        self.assert_fails("also changes docs/guide.md", git)
+
+    def test_mix_of_task_folder_and_docs_only_commits_is_accepted(self):
+        self.write_qa(qa_text(commit=OLD))
+        later = [commit(".sdlc/task/5/QA.md"), commit("docs/guide.md", docs_only=True), commit(".sdlc/task/5/QA.md")]
+        self.assertEqual(qa_check.check(str(self.task), FakeGit(self.root, later=later)), OLD)
+
+    def test_mix_with_one_plain_code_commit_is_rejected(self):
+        self.write_qa(qa_text(commit=OLD))
+        later = [commit(".sdlc/task/5/QA.md"), commit("docs/guide.md", docs_only=True), commit("src/app.py")]
+        git = FakeGit(self.root, later=later)
+        self.assert_fails(r"also changes src/app\.py$", git)
 
     def test_other_task_folder_is_not_exempt(self):
         self.write_qa(qa_text(commit=OLD))
-        git = FakeGit(self.root, changed=[".sdlc/task/50/QA.md"])
+        git = FakeGit(self.root, later=[commit(".sdlc/task/50/QA.md")])
         self.assert_fails("also changes", git)
 
     def test_commit_not_ancestor(self):
@@ -121,7 +158,7 @@ class QaCheckTest(unittest.TestCase):
 
     def test_folder_outside_repository_needs_exact_head(self):
         self.write_qa(qa_text(commit=OLD))
-        git = FakeGit(self.root / "elsewhere", changed=[".sdlc/task/5/QA.md"])
+        git = FakeGit(self.root / "elsewhere", later=[commit(".sdlc/task/5/QA.md")])
         self.assert_fails("also changes", git)
 
     def test_main_exit_codes(self):

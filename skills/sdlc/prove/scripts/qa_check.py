@@ -5,8 +5,9 @@ Usage: python3 .sdlc/scripts/qa_check.py <task-dir>
 
 Reads <task-dir>/QA.md. The newest run is the first "## Run" section.
 Exit code 0 when that run is a pass and its commit is HEAD. The run also
-counts for HEAD when every commit after it changes only files inside
-<task-dir>, for example the commit that adds QA.md itself.
+counts for HEAD when it is an ancestor of HEAD and every commit after it
+either changes only files inside <task-dir>, for example the commit that
+adds QA.md itself, or carries the Git trailer "SDLC-Docs-Only: true".
 Otherwise exit code 1, with the reason on stdout.
 """
 
@@ -17,6 +18,7 @@ from pathlib import Path
 
 RUN_HEADING = re.compile(r"^## Run\b.*$", re.M)
 NEXT_HEADING = re.compile(r"^## ", re.M)
+DOCS_ONLY_TRAILER = "SDLC-Docs-Only"
 COMMIT_LINE = re.compile(r"^Commit:\s*(\S+)\s*$", re.M)
 RESULT_LINE = re.compile(r"^Result:\s*(\S+)\s*$", re.M)
 
@@ -69,10 +71,22 @@ def task_prefix(task_dir, run):
     return folder.relative_to(root).as_posix() + "/"
 
 
-def changed_outside(commit, head, prefix, run):
-    """Return the files changed between commit and head that are outside the task folder."""
-    changed = run("diff", "--name-only", commit, head).splitlines()
+def changed_outside(commit, prefix, run):
+    """Return the files that one commit changes against its first parent and that are outside the task folder."""
+    changed = run("diff", "--name-only", f"{commit}^1", commit).splitlines()
     return [path for path in changed if prefix is None or not path.startswith(prefix)]
+
+
+def is_docs_only(commit, run):
+    """Return True when the commit carries the trailer "SDLC-Docs-Only: true"."""
+    values = run("log", "-1", f"--format=%(trailers:key={DOCS_ONLY_TRAILER},valueonly)", commit).split()
+    return "true" in (value.lower() for value in values)
+
+
+def stale_changes(tested, head, prefix, run):
+    """Return the files that make the evidence stale: files outside the task folder changed by later commits without the docs-only trailer."""
+    later = run("rev-list", f"{tested}..{head}").split()
+    return [path for commit in later if not is_docs_only(commit, run) for path in changed_outside(commit, prefix, run)]
 
 
 def resolve(commit, run):
@@ -84,16 +98,16 @@ def resolve(commit, run):
 
 
 def check_commit(commit, task_dir, run):
-    """Raise QaError unless the run commit is HEAD or differs from HEAD only inside the task folder."""
+    """Raise QaError unless the run commit is HEAD, or every later commit is docs-only or changes only the task folder."""
     tested = resolve(commit, run)
     head = run("rev-parse", "HEAD")
     if tested == head:
         return
     if run("merge-base", tested, head) != tested:
         raise QaError(f"the newest run is for {commit}, which is not an ancestor of HEAD {head}")
-    outside = changed_outside(tested, head, task_prefix(task_dir, run), run)
-    if outside:
-        raise QaError(f"the newest run is for {commit}, but HEAD {head} also changes {', '.join(outside[:5])}")
+    stale = sorted(set(stale_changes(tested, head, task_prefix(task_dir, run), run)))
+    if stale:
+        raise QaError(f"the newest run is for {commit}, but HEAD {head} also changes {', '.join(stale[:5])}")
 
 
 def check(task_dir, run=git):
