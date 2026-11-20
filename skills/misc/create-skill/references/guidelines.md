@@ -13,6 +13,7 @@ Rules for each part of a house-format skill. `scripts/lint_skill.py` checks the 
 - **argument-hint** [Optional] - Shows the args and flags in the slash-command menu, for example `<pr-number> [--auto]`. Add it when the skill has Args or Flags.
 - **allowed-tools** [Optional] - Tools the skill can use without a permission prompt. Add it only when the user asks for it.
 - **disable-model-invocation** [Optional] - Set to `true` when only the user may start the skill, for example a skill that deploys or deletes.
+- **type** [Optional] - Set to `principle` for a skill that holds judgment and has no flow of its own. A principle has only the Dependencies and Rules sections, and Rules is required. **(lint)**
 
 ## Dependencies
 
