@@ -1,6 +1,6 @@
 ---
 name: slice
-description: Use when a ready user story must be split into tasks before work starts. Cuts the story into vertical slices that one developer can build and ship as one PR each, puts prefactoring first, and creates the tasks as sub-issues with native blocking links. Triggers - slice this story, split the story into tasks, break this down, plan the tasks. Not for writing a spec or for sizing a raw request.
+description: Use when a ready user story, or an L story with its design, must be split into tasks before work starts. Cuts the story into vertical slices that one developer can build and ship as one PR each, puts prefactoring first, and creates the tasks as sub-issues with native blocking links. Triggers - slice this story, split the story into tasks, break this down, plan the tasks. Not for writing a spec or for sizing a raw request.
 argument-hint: <story> [--auto]
 ---
 
@@ -42,8 +42,8 @@ flowchart TD
 ## Flow steps
 
 1. **Load settings** - If `.sdlc/settings.json` or `.sdlc/scripts/` does not exist, stop and print `Next: /setup` as the last line. Read `task.path`, `spec.storage`, `sizing.m_max_tasks` and the `guides.labeling` file. If the guide is `null`, say that you run without one. If `--auto` is passed, read `references/auto_mode.md`.
-2. **Read the story** - Run `gh issue view <story> --json title,body,labels,comments`. Read the design if there is one: `<task.path>/<story>/DESIGN.md`, or the design comment on the story when `spec.storage` is `issue_comment`.
-3. **Can slice?** - If the story does not have the `ready` label, or it has `size:L` and no design, go to step 8 and name the cause. If not, go to step 4.
+2. **Read the story** - Run `gh issue view <story> --json title,body,labels,comments`. Read the design if there is one: `<task.path>/<story>/DESIGN.md` in the working tree or on the story's branch (`git show <story>-<slug>:<path>`), or the design comment on the story.
+3. **Can slice?** - An L story needs the `shaped` label and a design. Any other story needs the `ready` label. If the story fails its check, go to step 8 and name the cause. If not, go to step 4.
 4. **Draft tasks** - Read `references/slicing.md` and draft the tasks with their blocking edges.
 5. **One task?** - If the breakdown has one task, the story is an S. Run `python3 .sdlc/scripts/size.py <story> S`, create no task, and go to step 8. If not, go to step 6.
 6. **Approved?** - Show the breakdown: each task's title, goal, criteria and blockers. If the person changes it, go to step 4. If the person approves, go to step 7.
