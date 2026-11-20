@@ -8,7 +8,6 @@ argument-hint: [task] [--auto]
 
 - **(cli tool) git** [Must] - Names the commit under test and commits `QA.md`.
 - **(cli tool) gh** [Must] - Reads the acceptance criteria on the issue.
-- **(cli tool) python3** [Must] - Runs the `.sdlc/scripts/` scripts.
 
 ## Args
 
@@ -45,9 +44,9 @@ flowchart TD
 2. **Load context** - Read the settings. The task folder is `<task.path>/<task>/`. For XS work it is `$(git rev-parse --git-path sdlc/qa)`, which git does not track. Read the acceptance criteria with `gh issue view <task>` and the test plan in `SPEC.md`. Read the guide in `guides.qa`. If it is null, say that the run has no QA guide.
 3. **Ready to run?** - Run `git status --porcelain`. If a file outside the task folder has changes, go to step 6, because the evidence must name a commit. Start the app, or reach the endpoint or command, as the QA guide says. If it does not run, go to step 6. If it runs, go to step 4.
 4. **Run checks** - For each acceptance criterion, check the behaviour where a user, API client or operator meets it. Write down the exact command or action and what you saw.
-5. **Record run** - Add the run at the top of `QA.md` in the format below, then commit `QA.md` alone. XS work does not commit it. On a pass, run `python3 .sdlc/scripts/qa_check.py <task-folder>` and fix `QA.md` until it exits 0. Go to step 7.
+5. **Record run** - Add the run at the top of `QA.md` in the format below, then commit `QA.md` alone. XS work does not commit it. On a pass, run `sh .sdlc/scripts/qa_check.sh <task-folder>` and fix `QA.md` until it exits 0. Go to step 7.
 6. **Stop** - Write nothing to `QA.md`. Say why the run stopped: no settings, the changed files, or what you tried and the error. Print `Next: /setup` when the settings are missing. If not, print `Next: /prove <task>` to run after the fix, with `--auto` when this run has it.
-7. **Hand off** - Run `python3 .sdlc/scripts/next_step.py <task or -> --after prove --result <pass|fail>`, with `--auto` when this run has it. Print its output as the last line.
+7. **Hand off** - Run `sh .sdlc/scripts/next_step.sh <task or -> --after prove --result <pass|fail>`, with `--auto` when this run has it. Print its output as the last line.
 
 ```
 ## Run <ISO date>
