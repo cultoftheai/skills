@@ -34,7 +34,7 @@ flowchart TD
 
 ## Flow steps
 
-1. **Ask the script** - Run `python3 .sdlc/scripts/next_step.py <ref>`, with `--auto` when the user passed it. Keep its `Next:` line.
+1. **Ask the script** - Run `sh .sdlc/scripts/next_step.sh <ref>`, with `--auto` when the user passed it. Keep its `Next:` line.
 2. **Run it?** - A line can run when it holds a skill command with no `<...>` placeholder. The first skill always runs. Later skills run only with `--run` or `--auto`. If the line runs, go to step 3. If not, go to step 4.
 3. **Run the skill** - Read `references/harness.md`. Follow `orchestrator` to run the command in a fresh subagent. Ask it for a summary and the last `Next:` line. If the skill asks a person something, ask the person, then start a new subagent with the brief, the question and the answer. With `--run`, a question also ends the loop after that skill. Keep the new `Next:` line and go to step 2.
 4. **Report** - List each skill that ran with its summary. Print the last `Next:` line as the last line.
