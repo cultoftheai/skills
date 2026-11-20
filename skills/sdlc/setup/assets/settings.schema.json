@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SDLC settings",
+  "description": "The .sdlc/settings.json file of a repository. The setup skill writes it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "default_branch",
+    "guides",
+    "issue",
+    "task",
+    "spec",
+    "review",
+    "retro",
+    "research",
+    "sizing"
+  ],
+  "properties": {
+    "default_branch": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Base for branches, diffs and merges. Detected from the remote."
+    },
+    "guides": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "development",
+        "code_review",
+        "qa",
+        "labeling"
+      ],
+      "properties": {
+        "development": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "default": null,
+          "description": "The coding conventions of the project."
+        },
+        "code_review": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "default": null,
+          "description": "What the team checks in review."
+        },
+        "qa": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "default": null,
+          "description": "How to run and verify the app."
+        },
+        "labeling": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "default": null,
+          "description": "The label set and when each label applies."
+        }
+      }
+    },
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tracker",
+        "estimation"
+      ],
+      "properties": {
+        "tracker": {
+          "enum": [
+            "github",
+            "jira",
+            "linear"
+          ],
+          "default": "github",
+          "description": "The tracker adapter that the scripts use. Only github has scripts so far."
+        },
+        "estimation": {
+          "enum": [
+            "none",
+            "tshirt",
+            "fibonacci"
+          ],
+          "default": "tshirt",
+          "description": "The effort estimate. tshirt uses the size labels XS to XL, fibonacci uses story points."
+        }
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "keep"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/task",
+          "description": "Root of the task folders."
+        },
+        "keep": {
+          "type": "boolean",
+          "default": true,
+          "description": "Keep the task folder after merge."
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "storage",
+        "review"
+      ],
+      "properties": {
+        "storage": {
+          "enum": [
+            "local",
+            "issue_comment",
+            "both"
+          ],
+          "default": "local",
+          "description": "Where the spec lives. With both, the file is the source."
+        },
+        "review": {
+          "enum": [
+            "auto",
+            "manual",
+            "off"
+          ],
+          "default": "manual",
+          "description": "Whether a spec is reviewed before the build."
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resolve",
+        "prefix"
+      ],
+      "properties": {
+        "resolve": {
+          "enum": [
+            "reviewer",
+            "author"
+          ],
+          "default": "reviewer",
+          "description": "Who resolves a fixed review thread."
+        },
+        "prefix": {
+          "type": "string",
+          "minLength": 1,
+          "default": ":robot:",
+          "description": "Marks the replies that the agent writes."
+        }
+      }
+    },
+    "retro": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope"
+      ],
+      "properties": {
+        "scope": {
+          "enum": [
+            "worktree",
+            "repo"
+          ],
+          "default": "worktree",
+          "description": "Which chats the feature retro reads."
+        }
+      }
+    },
+    "research": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine"
+      ],
+      "properties": {
+        "engine": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "default": null,
+          "description": "Preferred search tool. Null means the built-in web search."
+        }
+      }
+    },
+    "sizing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "xs_max_files",
+        "xs_max_lines",
+        "m_max_tasks",
+        "l_min_modules",
+        "review_limit",
+        "risk_paths"
+      ],
+      "properties": {
+        "xs_max_files": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 2,
+          "description": "Most files an XS change touches."
+        },
+        "xs_max_lines": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 20,
+          "description": "Most changed lines in an XS change."
+        },
+        "m_max_tasks": {
+          "type": "integer",
+          "minimum": 2,
+          "default": 3,
+          "description": "Most tasks in an M story."
+        },
+        "l_min_modules": {
+          "type": "integer",
+          "minimum": 2,
+          "default": 3,
+          "description": "Work in this many modules or more is L."
+        },
+        "review_limit": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 400,
+          "description": "Most changed lines in one reviewable diff."
+        },
+        "risk_paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": [],
+          "description": "Path globs that rule out XS and make the work L."
+        }
+      }
+    }
+  }
+}
