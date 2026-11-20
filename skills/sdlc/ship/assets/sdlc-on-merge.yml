@@ -1,0 +1,26 @@
+name: sdlc-on-merge
+
+# pull_request_target gives a write token also for PRs from forks.
+# The job checks out the base branch, never the PR head.
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: read
+
+jobs:
+  on-merge:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+      - name: Release the claim and set done
+        run: python3 .sdlc/scripts/on_merge.py "$PR"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
