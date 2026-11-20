@@ -14,7 +14,8 @@ Exit code 0 when every gate passes, 1 when any gate fails.
 - qa: local HEAD is the PR head, and qa_check.py passes for the task folder
   of the issue the PR closes. When the task folder was removed on the branch,
   the check runs on the last commit that still had it, and every later change
-  must be inside the task folder. A PR that closes no issue has no task folder.
+  must be inside the task folder. A PR that closes no issue is XS work: its
+  evidence is the untracked QA.md in `git rev-parse --git-path sdlc/qa`.
 """
 
 import json
@@ -140,11 +141,16 @@ def qa_gate(pr_data, task_path, run):
         return False, f"local HEAD {local} is not the PR head {head}"
     issues = pr_data["closingIssuesReferences"]["nodes"]
     if not issues:
-        return True, "the PR closes no issue, so there is no task folder (XS)"
+        return run_qa_check(xs_qa_dir(run), None, run)
     task_dir = f"{task_path.rstrip('/')}/{issues[0]['number']}"
     if exists_at_head(f"{task_dir}/QA.md", run):
         return run_qa_check(task_dir, None, run)
     return qa_before_removal(task_dir, run)
+
+
+def xs_qa_dir(run):
+    """Return the folder that holds the QA.md of XS work, inside the git directory."""
+    return run(["git", "rev-parse", "--git-path", "sdlc/qa"]).stdout.strip()
 
 
 def exists_at_head(path, run):

@@ -64,6 +64,7 @@ def runner(data=None, checks=None, extra=()):
         (["gh", "api", "graphql"], done(json.dumps(graphql))),
         (["gh", "pr", "checks"], done(json.dumps(checks if checks is not None else [{"name": "ci", "bucket": "pass"}]))),
         (["git", "rev-parse", "HEAD"], done(HEAD + "\n")),
+        (["git", "rev-parse", "--git-path", "sdlc/qa"], done(".git/sdlc/qa\n")),
         (["git", "cat-file", "-e"], done()),
         ([sys.executable], done("QA check passed: pass recorded for " + HEAD)),
     ])
@@ -144,9 +145,15 @@ class QaGateTest(unittest.TestCase):
         fake = runner(extra=[([sys.executable], done("QA check failed: stale", returncode=1))])
         self.assertEqual(ship_gates.qa_gate(pr_data(), ".sdlc/task", fake), (False, "QA check failed: stale"))
 
-    def test_no_issue_passes_as_xs(self):
+    def test_no_issue_checks_xs_evidence(self):
         fake = runner()
         self.assertTrue(ship_gates.qa_gate(pr_data(issues=()), ".sdlc/task", fake)[0])
+        self.assertEqual(fake.calls[-1][0][-1], ".git/sdlc/qa")
+
+    def test_no_issue_without_xs_evidence_fails(self):
+        missing = "QA check failed: .git/sdlc/qa/QA.md does not exist; run prove first"
+        fake = runner(extra=[([sys.executable], done(missing, returncode=1))])
+        self.assertEqual(ship_gates.qa_gate(pr_data(issues=()), ".sdlc/task", fake), (False, missing))
 
     def test_missing_qa_fails(self):
         fake = runner(extra=[
