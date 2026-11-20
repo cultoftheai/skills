@@ -8,7 +8,6 @@ argument-hint: [task] [--auto]
 
 - **(cli tool) git** [Must] - Reads the diff, commits and pushes the docs.
 - **(cli tool) gh** [Must] - GitHub official CLI. Reads the size label and finds the PR.
-- **(cli tool) python3** [Must] - Runs `.sdlc/scripts/next_step.py`.
 
 ## Args
 
@@ -51,7 +50,7 @@ flowchart TD
 5. **Edit docs** - Find the docs the project already has: README files, a docs folder and the pages they link to. Write how the change works now: behaviour, configuration and extension points. Edit the page a reader opens first for this topic. Add a page only when no page covers the topic.
 6. **Write ADRs** - Find each decision in SPEC.md that the diff carries out and that names the alternatives it rejected. Write one ADR for each, in the folder and format of the existing ADRs. If there are none, create `docs/adr/NNNN-<slug>.md` with Status, Context, Decision, Rejected alternatives and Consequences.
 7. **Commit and push** - If steps 5 and 6 changed no file, go to step 8. Commit the docs changes in one commit. In the commit body, list the spec differences from step 4. End the message with the trailer `SDLC-Docs-Only: true`. Push to the PR branch.
-8. **Hand off** - Give the report from the Output section. Run `python3 .sdlc/scripts/next_step.py <pr> --after document`, with `--auto` if the flag is passed. Print its output as the last line.
+8. **Hand off** - Give the report from the Output section. Run `sh .sdlc/scripts/next_step.sh <pr> --after document`, with `--auto` if the flag is passed. Print its output as the last line.
 
 ## Rules
 
