@@ -45,10 +45,10 @@ flowchart TD
 2. **Read the story** - Run `gh issue view <story> --json title,body,labels,comments`. Read the design if there is one: `<task.path>/<story>/DESIGN.md` in the working tree or on the story's branch (`git show <story>-<slug>:<path>`), or the design comment on the story.
 3. **Can slice?** - An L story needs the `shaped` label and a design. Any other story needs the `ready` label. If the story fails its check, go to step 8 and name the cause. If not, go to step 4.
 4. **Draft tasks** - Read `references/slicing.md` and draft the tasks with their blocking edges.
-5. **One task?** - If the breakdown has one task, the story is an S. Run `python3 .sdlc/scripts/size.py <story> S`, create no task, and go to step 8. If not, go to step 6.
+5. **One task?** - If the breakdown has one task, the story is an S. Run `sh .sdlc/scripts/size.sh <story> S`, create no task, and go to step 8. If not, go to step 6.
 6. **Approved?** - Show the breakdown: each task's title, goal, criteria and blockers. If the person changes it, go to step 4. If the person approves, go to step 7.
-7. **Create tasks** - Create the tasks in blocking order, so that each blocker exists first: `gh issue create --parent <story> --blocked-by <numbers>`. Add the labels that the labeling guide asks for. Run `python3 .sdlc/scripts/stage.py <task> ready` on each task.
-8. **Report** - Give the report from the Output section. Then run `python3 .sdlc/scripts/next_step.py <ref> --after slice`, with `--auto` when it was passed, and print its output as the last line. `<ref>` is the first task with no blocker, the story after step 5, or `<story> --result fail` after step 3.
+7. **Create tasks** - Create the tasks in blocking order, so that each blocker exists first: `gh issue create --parent <story> --blocked-by <numbers>`. Add the labels that the labeling guide asks for. Run `sh .sdlc/scripts/stage.sh <task> ready` on each task.
+8. **Report** - Give the report from the Output section. Then run `sh .sdlc/scripts/next_step.sh <ref> --after slice`, with `--auto` when it was passed, and print its output as the last line. `<ref>` is the first task with no blocker, the story after step 5, or `<story> --result fail` after step 3.
 
 ## Rules
 

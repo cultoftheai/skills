@@ -15,7 +15,7 @@
 ## Re-size
 
 - One task: the story is an S (step 5).
-- On an M story, more tasks than `sizing.m_max_tasks`: the story is an L. Run `python3 .sdlc/scripts/size.py <story> L`, create no task, and stop. An L story needs a design before `slice`, so end the run with `next_step.py <story> --after slice --result fail`.
+- On an M story, more tasks than `sizing.m_max_tasks`: the story is an L. Run `sh .sdlc/scripts/size.sh <story> L`, create no task, and stop. An L story needs a design before `slice`, so end the run with `next_step.sh <story> --after slice --result fail`.
 
 ## Task body
 
