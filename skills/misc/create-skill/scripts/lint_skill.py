@@ -14,6 +14,8 @@ from pathlib import Path
 
 SECTION_ORDER = ["Dependencies", "Args", "Flags", "Flow Graph", "Flow steps", "Rules", "Output"]
 REQUIRED_SECTIONS = ["Flow Graph", "Flow steps", "Rules"]
+PRINCIPLE_SECTIONS = ["Dependencies", "Rules"]
+PRINCIPLE_REQUIRED_SECTIONS = ["Rules"]
 NAME_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 NODE_PATTERN = re.compile(r"^\s*\w+\s*[\[{](.+?)[\]}]\s*$", re.M)
 NUMBERED_LABEL = re.compile(r"^(\d+)\.\s+(.+)$")
@@ -90,15 +92,15 @@ def check_length(text):
     return []
 
 
-def check_section_order(headings):
-    """Check that only template sections are used, once each, in template order."""
-    errors = [f"section '{h}' is not in the template" for h in headings if h not in SECTION_ORDER]
-    errors += [f"section '{h}' is missing" for h in REQUIRED_SECTIONS if h not in headings]
-    known = [h for h in headings if h in SECTION_ORDER]
+def check_section_order(headings, allowed=SECTION_ORDER, required=REQUIRED_SECTIONS):
+    """Check that only allowed sections are used, once each, in template order, and that each required section is present."""
+    errors = [f"section '{h}' is not in the template" for h in headings if h not in allowed]
+    errors += [f"section '{h}' is missing" for h in required if h not in headings]
+    known = [h for h in headings if h in allowed]
     if len(set(known)) != len(known):
         errors.append("a section is used more than once")
-    if known != sorted(known, key=SECTION_ORDER.index):
-        errors.append(f"sections are not in template order: {', '.join(SECTION_ORDER)}")
+    if known != sorted(known, key=allowed.index):
+        errors.append(f"sections are not in template order: {', '.join(allowed)}")
     return errors
 
 
@@ -169,6 +171,14 @@ def check_flow(section_map):
     return errors, graph
 
 
+def check_structure(meta, section_map, headings):
+    """Return the section and flow errors for the skill type, and the flow graph. A principle has no flow, so its graph is None."""
+    if meta.get("type") == "principle":
+        return check_section_order(headings, PRINCIPLE_SECTIONS, PRINCIPLE_REQUIRED_SECTIONS), None
+    flow_errors, graph = check_flow(section_map)
+    return check_section_order(headings) + flow_errors, graph
+
+
 def check_paths(text, skill_dir):
     """Check that each references/, scripts/ and assets/ path exists in the skill directory."""
     missing = sorted({p for p in PATH_PATTERN.findall(text) if not (skill_dir / p).exists()})
@@ -198,15 +208,14 @@ def lint(skill_dir):
     if meta is None:
         return ["SKILL.md has no frontmatter"], False
     section_map, headings = sections(body)
-    flow_errors, graph = check_flow(section_map)
+    structure_errors, graph = check_structure(meta, section_map, headings)
     syntax_errors, syntax_checked = check_mermaid_syntax(graph)
     errors = (
         check_name(meta, skill_dir)
         + check_description(meta)
         + check_placeholders(text)
         + check_length(text)
-        + check_section_order(headings)
-        + flow_errors
+        + structure_errors
         + syntax_errors
         + check_paths(text, skill_dir)
     )
