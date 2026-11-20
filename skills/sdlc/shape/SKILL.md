@@ -1,6 +1,6 @@
 ---
 name: shape
-description: Use when a ready task is picked up and needs its spec before the build, or when an L story needs its design before it is sliced. Claims the task, creates its task folder, reads the code, confirms or raises the size, and writes SPEC.md, or DESIGN.md for an L story. Triggers - shape this task, write the spec, pick up the next task, write the design. Not for splitting a story into tasks or for writing code.
+description: Use when a ready task is picked up and needs its spec before the build, or when an L story needs its design before it is sliced. Creates its task folder, reads the code, confirms or raises the size, and writes SPEC.md, or DESIGN.md for an L story. Triggers - shape this task, write the spec, pick up the next task, write the design. Not for splitting a story into tasks or for writing code.
 argument-hint: <issue> [--auto]
 ---
 
@@ -21,7 +21,7 @@ flowchart TD
     A[1. Load settings]
     B[2. Read the issue]
     C{3. Can shape?}
-    D{4. Claimed?}
+    D[4. Create the folder]
     E[5. Read the code]
     F{6. Size holds?}
     G[7. Write it]
@@ -33,8 +33,7 @@ flowchart TD
     B --> C
     C -->|No| J
     C -->|Yes| D
-    D -->|No| J
-    D -->|Yes| E
+    D --> E
     E --> F
     F -->|No| J
     F -->|Yes| G
@@ -49,13 +48,13 @@ flowchart TD
 1. **Load settings** - If `.sdlc/settings.json` or `.sdlc/scripts/` does not exist, stop and print `Next: /setup` as the last line. Read `task.path`, `spec.*`, `sizing.*` and the `guides.development` file. If the guide is `null`, say that you run without one. If `--auto` is passed, read `references/auto_mode.md`.
 2. **Read the issue** - Run `gh issue view <issue> --json title,body,labels,parent,subIssues`. Read the parent story and its design, if there is one.
 3. **Can shape?** - If the issue does not have the `ready` label, or it is a story that is not L or already has tasks, go to step 10 and name the cause. If not, go to step 4.
-4. **Claimed?** - For a task, run `python3 .sdlc/scripts/claim.py <issue>`. Exit 3 means another session owns the task: go to step 10. A story needs no claim. Then read `references/task_folder.md` and create the branch and the folder.
+4. **Create the folder** - Read `references/task_folder.md` and create the branch and the folder.
 5. **Read the code** - Read the code that the work touches. Count the exact modules, files and changed lines. When a decision needs an outside fact that the code cannot give, run the `research` skill with that one question.
 6. **Size holds?** - Read `references/resize.md`. If a trigger in it holds, raise the size as it says and go to step 10. If not, go to step 7.
 7. **Write it** - Read `references/spec.md` for a task, or `references/design.md` for a story, and write the file. Store it as `spec.storage` says (`references/task_folder.md`).
 8. **Approved?** - If `spec.review` is `auto`, run the `review` skill on the file and apply each blocking finding. If it is `manual`, show the file to the person. If the person asks for changes, go to step 7. If the person approves, or `spec.review` is `off`, go to step 9.
-9. **Mark shaped** - Commit the task folder. Run `python3 .sdlc/scripts/stage.py <issue> shaped`.
-10. **Report** - Give the report from the Output section. Then run `python3 .sdlc/scripts/next_step.py <issue> --after shape`, with `--auto` when it was passed, and print its output as the last line. Add `--result fail` after a stop in step 3, 4 or 6.
+9. **Mark shaped** - Commit the task folder. Run `sh .sdlc/scripts/stage.sh <issue> shaped`.
+10. **Report** - Give the report from the Output section. Then run `sh .sdlc/scripts/next_step.sh <issue> --after shape`, with `--auto` when it was passed, and print its output as the last line. Add `--result fail` after a stop in step 3 or 6.
 
 ## Rules
 

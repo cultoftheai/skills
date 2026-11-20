@@ -20,4 +20,4 @@ Story: #<story>
 <existing code that the tasks copy, by path>```
 
 - Leave out a section that has no shared decision.
-- If no section has a shared decision, the story is not an L. Lower it with `python3 .sdlc/scripts/size.py <story> M` and write no design.
+- If no section has a shared decision, the story is not an L. Lower it with `sh .sdlc/scripts/size.sh <story> M` and write no design.
