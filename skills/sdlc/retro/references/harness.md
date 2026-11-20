@@ -11,5 +11,5 @@ Run the transcript script once for each harness below. A harness with no session
 ## Codex
 
 - Script flag: `--harness codex`.
-- Transcripts: `~/.codex/sessions/YYYY/MM/DD/rollout-<time>-<id>.jsonl` and `~/.codex/archived_sessions/`, or under `$CODEX_HOME` when that variable is set. Codex can compress old files to `.jsonl.zst`. The script reads them only with Python 3.14 or later.
+- Transcripts: `~/.codex/sessions/YYYY/MM/DD/rollout-<time>-<id>.jsonl` and `~/.codex/archived_sessions/`, or under `$CODEX_HOME` when that variable is set. Codex can compress old files to `.jsonl.zst`. The script reads them only when `zstd` is installed.
 - These facts come from the Codex source (openai/codex, commit 60fc55b). They were not checked on a Codex install: unverified.
