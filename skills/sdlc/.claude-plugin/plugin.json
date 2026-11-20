@@ -1,0 +1,14 @@
+{
+  "name": "sdlc",
+  "version": "0.1.0",
+  "description": "Takes a request from idea to merged, documented code. GitHub issues hold the record, and the size of a request sets how much process it gets.",
+  "author": {
+    "name": "cultoftheai",
+    "url": "https://github.com/cultoftheai"
+  },
+  "homepage": "https://github.com/cultoftheai/skills",
+  "repository": "https://github.com/cultoftheai/skills",
+  "skills": [
+    "./"
+  ]
+}

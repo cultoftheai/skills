@@ -1,0 +1,22 @@
+{
+  "name": "cultoftheai",
+  "description": "Skills from the cultoftheai/skills repository.",
+  "owner": {
+    "name": "cultoftheai",
+    "url": "https://github.com/cultoftheai"
+  },
+  "plugins": [
+    {
+      "name": "sdlc",
+      "source": "./skills/sdlc",
+      "description": "Takes a request from idea to merged, documented code. GitHub issues hold the record, and the size of a request sets how much process it gets.",
+      "category": "development"
+    },
+    {
+      "name": "misc",
+      "source": "./skills/misc",
+      "description": "Skills for writing skills in the house format of this repository.",
+      "category": "development"
+    }
+  ]
+}
