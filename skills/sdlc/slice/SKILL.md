@@ -41,7 +41,7 @@ flowchart TD
 
 ## Flow steps
 
-1. **Load settings** - If `.sdlc/settings.json` or `.sdlc/scripts/` does not exist, stop and print `Next: /setup` as the last line. Read `task.path`, `spec.storage`, `sizing.m_max_tasks` and the `guides.labeling` file. If the guide is `null`, say that you run without one. If `--auto` is passed, read `references/auto_mode.md`.
+1. **Load settings** - If `.sdlc/settings.json` or `.sdlc/scripts/` does not exist, stop and print `Next: /setup` as the last line. Read `task.path`, `spec.storage`, `sizing.m_max_tasks`, `templates.task` and the `guides.labeling` file. If the guide is `null`, say that you run without one. If `--auto` is passed, read `references/auto_mode.md`.
 2. **Read the story** - Run `gh issue view <story> --json title,body,labels,comments`. Read the design if there is one: `<task.path>/<story>/DESIGN.md` in the working tree or on the story's branch (`git show <story>-<slug>:<path>`), or the design comment on the story.
 3. **Can slice?** - An L story needs the `shaped` label and a design. Any other story needs the `ready` label. If the story fails its check, go to step 8 and name the cause. If not, go to step 4.
 4. **Draft tasks** - Read `references/slicing.md` and draft the tasks with their blocking edges.

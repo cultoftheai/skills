@@ -19,14 +19,6 @@
 
 ## Task body
 
-```markdown
-## Goal
-<what this slice delivers, in one or two sentences>
-
-## Acceptance criteria
-- [ ] <observable behaviour, taken from the story>
-
-Story: #<story>
-```
+Fill in the template at `templates.task`. If that file does not exist, use `assets/templates/task.md` and say so in the report.
 
 The blocking edges are native tracker links, not text in the body.
