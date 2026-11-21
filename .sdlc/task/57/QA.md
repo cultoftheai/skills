@@ -1,6 +1,20 @@
 # QA
 
 ## Run 2026-11-21
+Commit: f5e5109fafc1487c9a82ed489fc0f35fd51f16b0
+Result: pass
+### Steps
+- Made scratch repo A: `git init -b main`, with `CONTRIBUTING.md`, `DEVELOPMENT.md`, `CONVENTIONS.md`, `STYLEGUIDE.md`, `TESTING.md` and `src/auth/login.js` committed, no remote and no `.sdlc/settings.json`. Ran `/sdlc:setup` in headless Claude Code 2.1.330 (`claude -p --input-format stream-json --output-format stream-json --permission-prompt-tool stdio --plugin-dir <worktree>/skills/sdlc`). A driver answered each `AskUserQuestion` call with the first option, except `review.prefix`, which got the free text `:bot:` -> Groups came in order 1 to 7, one `AskUserQuestion` call per group. Group 1 asked the detected keys with the detected value first: branch [`main (Recommended)`, `Enter another value`], with the header `branch`. Group 2 asked only the `issue.types` bundle [`Use these (Recommended)`, `Change some`]. It did not ask project, stages or size_field, which GitHub fixes. Group 3: four guide files matched `guides.development`, and the question showed [`DEVELOPMENT.md (Recommended)`, `CONTRIBUTING.md`, `CONVENTIONS.md`, `null`]. Every bundle ended in `Change some` (risk paths [`Use these (Recommended)`, `None`, `Change some`]). Every question had at most four options, and every call had at most four questions. The written file holds `"prefix": ":bot:"` - criterion 1
+- Made scratch repo B with the same partial `.sdlc/settings.json` as the run below: kept `default_branch: trunk`, two guides, three templates, all `issue.*`, `task.path: .sdlc/work`, `review` (`author`, `:gear:`), `retro.scope: repo`, `research.engine: null`, and `sizing` 5 / 50 / 800. Ran `/sdlc:setup` with the same driver -> Groups 1, 2, 5 and 7 were skipped. Group 3 asked only code_review and labeling. Group 4 asked keep, storage, review and a templates bundle with only `templates.spec`, `templates.design`, `templates.review` and `templates.retro`. Group 6 asked risk paths and a thresholds bundle with only `m_max_tasks = 3` and `l_min_modules = 3`. Afterwards `jq` showed every kept value unchanged, and `validate_settings.sh` printed `valid` - criterion 2
+- Made scratch repo C the same way as the run below, with no settings file. Ran `/sdlc:setup` with `--disallowedTools AskUserQuestion` and answered each turn by `--resume` -> The log has no `AskUserQuestion` call. Each group was one text message, with options numbered from 1 and the recommended one first. Group 2 said that GitHub sets project, stages and size_field, and asked only `issue.types`. Messages ended with "Reply with one line for each key: a number or your own value." (group 2: "Reply with one line: a number or your own value.") Groups came in order 1 to 7
+- In repo C, replied to group 1 with `develop` / `1` / `3`, group 3 with `1` / `1` / `2` / `1`, group 4 with `1` / `2` / `1` / `1`, group 5 with `2` / `:bot:`, and `1` elsewhere. Then `yes` to write and `no` to scripts -> `.sdlc/settings.json` holds `default_branch: "develop"` (free text), `estimation: "fibonacci"` (number 3), `guides.qa: null`, `task.keep: false`, `review.resolve: "author"` (number 2) and `review.prefix: ":bot:"` (free text). `validate_settings.sh` prints `valid` - criterion 3
+- `python3 skills/misc/create-skill/scripts/lint_skill.py skills/sdlc/setup` -> `PASS` (note: mmdc not found, so the mermaid syntax was not checked)
+
+## Assumptions
+- `TESTING.md` is only a TODO stub, so this run has no QA guide. The surface and the driver are the same as in the run below. The TUI screen itself was not looked at.
+- A tracker move to Jira or Linear was not run: no Jira or Linear tool is connected, and the scratch repos have no remote.
+
+## Run 2026-11-21
 Commit: e9b5523b4ed4c7bcc029767cf9eb0e7517368d69
 Result: pass
 ### Steps
