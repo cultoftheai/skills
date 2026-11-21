@@ -1,0 +1,473 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SDLC settings",
+  "description": "The .sdlc/settings.json file of a repository. The setup skill writes it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "default_branch",
+    "guides",
+    "templates",
+    "issue",
+    "task",
+    "spec",
+    "review",
+    "retro",
+    "research",
+    "sizing"
+  ],
+  "properties": {
+    "default_branch": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Base for branches, diffs and merges. Detected from the remote."
+    },
+    "guides": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "development",
+        "code_review",
+        "qa",
+        "labeling"
+      ],
+      "properties": {
+        "development": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "default": null,
+          "description": "The coding conventions of the project."
+        },
+        "code_review": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "default": null,
+          "description": "What the team checks in review."
+        },
+        "qa": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "default": null,
+          "description": "How to run and verify the app."
+        },
+        "labeling": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "default": null,
+          "description": "The label set and when each label applies."
+        }
+      }
+    },
+    "templates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "story",
+        "epic",
+        "task",
+        "spec",
+        "design",
+        "review",
+        "retro"
+      ],
+      "properties": {
+        "story": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/story.md",
+          "description": "The issue body of a story or task. A skill uses its own copy when the file does not exist."
+        },
+        "epic": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/epic.md",
+          "description": "The issue body of an epic. A skill uses its own copy when the file does not exist."
+        },
+        "task": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/task.md",
+          "description": "The template of the issue body of a task that slice creates. A skill uses its own copy when the file does not exist."
+        },
+        "spec": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/spec.md",
+          "description": "The template of the SPEC.md of a task. A skill uses its own copy when the file does not exist."
+        },
+        "design": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/design.md",
+          "description": "The template of the DESIGN.md of an L story. A skill uses its own copy when the file does not exist."
+        },
+        "review": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/review.md",
+          "description": "The template of the REVIEW.md of a pull request. A skill uses its own copy when the file does not exist."
+        },
+        "retro": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/retro.md",
+          "description": "The template of the RETRO.md of a task. A skill uses its own copy when the file does not exist."
+        }
+      }
+    },
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tracker",
+        "estimation",
+        "project",
+        "stages",
+        "size_field",
+        "types"
+      ],
+      "properties": {
+        "tracker": {
+          "enum": [
+            "github",
+            "jira",
+            "linear"
+          ],
+          "default": "github",
+          "description": "The tracker adapter that the scripts use. Only github has scripts so far."
+        },
+        "estimation": {
+          "enum": [
+            "none",
+            "tshirt",
+            "fibonacci"
+          ],
+          "default": "tshirt",
+          "description": "The effort estimate. tshirt uses the size labels XS to XL, fibonacci uses story points."
+        },
+        "project": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "default": null,
+          "description": "The Jira project key or the Linear team key where the skills create issues. Null on GitHub."
+        },
+        "stages": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ready",
+            "shaped",
+            "in-progress",
+            "review",
+            "done",
+            "blocked"
+          ],
+          "default": {
+            "ready": null,
+            "shaped": null,
+            "in-progress": null,
+            "review": null,
+            "done": null,
+            "blocked": null
+          },
+          "description": "The native status (Jira) or workflow state (Linear) of each stage. Null uses a label named after the stage. Always null on GitHub.",
+          "properties": {
+            "ready": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the ready stage, or null for the ready label."
+            },
+            "shaped": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the shaped stage, or null for the shaped label."
+            },
+            "in-progress": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the in-progress stage, or null for the in-progress label."
+            },
+            "review": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the review stage, or null for the review label."
+            },
+            "done": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the done stage, or null for the done label."
+            },
+            "blocked": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the blocked stage, or null for the blocked label."
+            }
+          }
+        },
+        "size_field": {
+          "enum": [
+            "label",
+            "estimate"
+          ],
+          "default": "label",
+          "description": "Where the size XS to XL goes. estimate uses the T-shirt estimate of a Linear team. label uses the size:XS to size:XL labels."
+        },
+        "types": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "epic",
+            "story",
+            "task",
+            "subtask"
+          ],
+          "default": {
+            "epic": null,
+            "story": null,
+            "task": null,
+            "subtask": null
+          },
+          "description": "The native issue type of each kind of issue. Null sets no type.",
+          "properties": {
+            "epic": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The type of an epic."
+            },
+            "story": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The type of a story."
+            },
+            "task": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The type of a task with no parent story."
+            },
+            "subtask": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The type of a task under a story."
+            }
+          }
+        }
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "keep"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/task",
+          "description": "Root of the task folders."
+        },
+        "keep": {
+          "type": "boolean",
+          "default": true,
+          "description": "Keep the task folder after merge."
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "storage",
+        "review"
+      ],
+      "properties": {
+        "storage": {
+          "enum": [
+            "local",
+            "issue_comment",
+            "both"
+          ],
+          "default": "local",
+          "description": "Where the spec lives. With both, the file is the source."
+        },
+        "review": {
+          "enum": [
+            "auto",
+            "manual",
+            "off"
+          ],
+          "default": "manual",
+          "description": "Whether a spec is reviewed before the build."
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resolve",
+        "prefix"
+      ],
+      "properties": {
+        "resolve": {
+          "enum": [
+            "reviewer",
+            "author"
+          ],
+          "default": "reviewer",
+          "description": "Who resolves a fixed review thread."
+        },
+        "prefix": {
+          "type": "string",
+          "minLength": 1,
+          "default": ":robot:",
+          "description": "Marks the replies that the agent writes."
+        }
+      }
+    },
+    "retro": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope"
+      ],
+      "properties": {
+        "scope": {
+          "enum": [
+            "worktree",
+            "repo"
+          ],
+          "default": "worktree",
+          "description": "Which chats the feature retro reads."
+        }
+      }
+    },
+    "research": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine"
+      ],
+      "properties": {
+        "engine": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "default": null,
+          "description": "Preferred search tool. Null means the built-in web search."
+        }
+      }
+    },
+    "sizing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "xs_max_files",
+        "xs_max_lines",
+        "m_max_tasks",
+        "l_min_modules",
+        "review_limit",
+        "risk_paths"
+      ],
+      "properties": {
+        "xs_max_files": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 2,
+          "description": "Most files an XS change touches."
+        },
+        "xs_max_lines": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 20,
+          "description": "Most changed lines in an XS change."
+        },
+        "m_max_tasks": {
+          "type": "integer",
+          "minimum": 2,
+          "default": 3,
+          "description": "Most tasks in an M story."
+        },
+        "l_min_modules": {
+          "type": "integer",
+          "minimum": 2,
+          "default": 3,
+          "description": "Work in this many modules or more is L."
+        },
+        "review_limit": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 400,
+          "description": "Most changed lines in one reviewable diff."
+        },
+        "risk_paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": [],
+          "description": "Path globs that rule out XS and make the work L."
+        }
+      }
+    }
+  }
+}
