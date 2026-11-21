@@ -4,11 +4,11 @@ Do each operation with the Jira tool that is connected in the session. If no Jir
 
 ## Read
 
-Get the issue with its title, description, labels and comments.
+Get the issue with its title, description, status, labels and comments.
 
 ## Create
 
-Create the issue in the project of its parent, or in the project that the person names. A story is the `Story` type, a task the `Task` type and an epic the `Epic` type. To create it under the story, use the `Sub-task` type and set its parent to the story key. For each blocker, add an issue link of the type `Blocks` from the blocker to the new issue.
+Create the issue in the project `issue.project`, with the type that `issue.types` gives for its kind: `epic`, `story`, `task`, or `subtask` for a task under the story. To create it under the story, set its parent to the story key. For each blocker, add an issue link of the type `Blocks` from the blocker to the new issue.
 
 ## Edit
 
@@ -24,4 +24,4 @@ Add the label `size:<size>` and remove every other size label: `size:XS`, `size:
 
 ## Stage
 
-Add the stage label and remove every other stage label: `ready`, `shaped`, `in-progress`, `review`, `done`, `blocked`.
+Move the issue to the status that `issue.stages` gives for the stage. When it gives `null`, add the stage label instead. Then remove every other stage label: `ready`, `shaped`, `in-progress`, `review`, `done`, `blocked`. The stage of an issue is the stage whose status it has, or else its stage label.
