@@ -269,7 +269,7 @@ test_bot_approval_is_not_a_person() {
 
 test_context_advice_by_skill_and_result() {
     pr 9 5 '{state: "MERGED"}'
-    assert_eq "$(context_line 5 --after build)" "compact - the next step continues this work. Run /compact Keep issue #5"
+    assert_eq "$(context_line 5 --after build)" "clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command."
     assert_eq "$(context_line 5 --after prove --result fail)" "compact - the next step continues this work. Run /compact Keep issue #5"
     assert_eq "$(context_line 5 --after prove)" "keep - the next step follows on directly."
     assert_eq "$(context_line 5 --after submit --result fail)" "keep - the next step follows on directly."
@@ -283,9 +283,9 @@ test_context_advice_by_skill_and_result() {
 
 test_compact_keeps_issue_branch_and_open_items() {
     git init -q -b 54-context-advice .
-    assert_eq "$(context_line 5 --after build --keep '2 failing checks')" \
+    assert_eq "$(context_line 5 --after prove --result fail --keep '2 failing checks')" \
         "compact - the next step continues this work. Run /compact Keep issue #5, branch 54-context-advice, open items: 2 failing checks"
-    assert_eq "$(context_line 5 --after build)" \
+    assert_eq "$(context_line 5 --after prove --result fail)" \
         "compact - the next step continues this work. Run /compact Keep issue #5, branch 54-context-advice"
     assert_eq "$(context_line - --after prove --result fail --keep 'the login test')" \
         "compact - the next step continues this work. Run /compact Keep branch 54-context-advice, open items: the login test"
