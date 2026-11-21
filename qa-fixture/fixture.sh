@@ -20,7 +20,7 @@ greet() {
 }
 
 usage() {
-    echo "usage: fixture.sh add|mul|div|greet ..."
+    echo "usage: fixture.sh add|mul|div|greet ..." >&2
 }
 
 case "$1" in
