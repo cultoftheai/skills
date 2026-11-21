@@ -75,7 +75,12 @@
       "additionalProperties": false,
       "required": [
         "story",
-        "epic"
+        "epic",
+        "task",
+        "spec",
+        "design",
+        "review",
+        "retro"
       ],
       "properties": {
         "story": {
@@ -89,6 +94,36 @@
           "minLength": 1,
           "default": ".sdlc/templates/epic.md",
           "description": "The issue body of an epic. A skill uses its own copy when the file does not exist."
+        },
+        "task": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/task.md",
+          "description": "The template of the issue body of a task that slice creates. A skill uses its own copy when the file does not exist."
+        },
+        "spec": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/spec.md",
+          "description": "The template of the SPEC.md of a task. A skill uses its own copy when the file does not exist."
+        },
+        "design": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/design.md",
+          "description": "The template of the DESIGN.md of an L story. A skill uses its own copy when the file does not exist."
+        },
+        "review": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/review.md",
+          "description": "The template of the REVIEW.md of a pull request. A skill uses its own copy when the file does not exist."
+        },
+        "retro": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/retro.md",
+          "description": "The template of the RETRO.md of a task. A skill uses its own copy when the file does not exist."
         }
       }
     },
