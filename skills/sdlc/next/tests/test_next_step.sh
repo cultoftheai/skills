@@ -290,3 +290,17 @@ test_compact_keeps_issue_branch_and_open_items() {
     assert_eq "$(context_line - --after prove --result fail --keep 'the login test')" \
         "compact - the next step continues this work. Run /compact Keep branch 54-context-advice, open items: the login test"
 }
+
+test_context_line_comes_right_before_the_next_line() {
+    lines=$("$SH" "$NEXT_STEP" 5 --after prove 2> /dev/null)
+    assert_eq "$lines" "Context: keep - the next step follows on directly.
+Next: /sdlc:submit 5"
+}
+
+test_no_context_line_without_a_hand_off_settings_or_claude_code() {
+    issue 3 shaped,size:S
+    assert_eq "$(context_line 3)" ""
+    assert_eq "$(context_line 5 --after prove --harness codex)" ""
+    rm .sdlc/settings.json
+    assert_eq "$(context_line 5 --after prove)" ""
+}
