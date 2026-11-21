@@ -3,5 +3,3 @@
 
 ## Acceptance criteria
 - [ ] <observable behaviour, taken from the story>
-
-Story: #<story>
