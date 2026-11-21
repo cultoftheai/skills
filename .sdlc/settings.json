@@ -1,0 +1,64 @@
+{
+  "default_branch": "main",
+  "guides": {
+    "development": "CONTRIBUTING.md",
+    "code_review": "REVIEWING.md",
+    "qa": "TESTING.md",
+    "labeling": "LABELING.md"
+  },
+  "templates": {
+    "story": ".sdlc/templates/story.md",
+    "epic": ".sdlc/templates/epic.md",
+    "task": ".sdlc/templates/task.md",
+    "spec": ".sdlc/templates/spec.md",
+    "design": ".sdlc/templates/design.md",
+    "review": ".sdlc/templates/review.md",
+    "retro": ".sdlc/templates/retro.md"
+  },
+  "issue": {
+    "tracker": "github",
+    "estimation": "tshirt",
+    "project": null,
+    "stages": {
+      "ready": null,
+      "shaped": null,
+      "in-progress": null,
+      "review": null,
+      "done": null,
+      "blocked": null
+    },
+    "size_field": "label",
+    "types": {
+      "epic": "Epic",
+      "story": "Story",
+      "task": "Task",
+      "subtask": "Task"
+    }
+  },
+  "task": {
+    "path": ".sdlc/task",
+    "keep": true
+  },
+  "spec": {
+    "storage": "local",
+    "review": "manual"
+  },
+  "review": {
+    "resolve": "reviewer",
+    "prefix": ":robot:"
+  },
+  "retro": {
+    "scope": "worktree"
+  },
+  "research": {
+    "engine": null
+  },
+  "sizing": {
+    "xs_max_files": 2,
+    "xs_max_lines": 20,
+    "m_max_tasks": 3,
+    "l_min_modules": 3,
+    "review_limit": 400,
+    "risk_paths": []
+  }
+}
