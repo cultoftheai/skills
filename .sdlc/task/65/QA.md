@@ -1,5 +1,19 @@
 # QA
 
+## Run 2026-11-21T22:10:40Z
+Commit: c83027b605273e0c83ea0f5156f6993cd3b206aa
+Result: pass
+### Steps
+- Fixture: draft PR #70 (head dc8444f) against `main`, with the same planted contradiction as #68 (harness.md:8 against orchestrator rule 6). It closes no issue. The settings were read from a scratch copy with `guides.code_review: null`, which was never committed.
+- `review 70` (`high`, XS, no guide) -> step 3 found no closing issue, so `criteria` was dropped, and there was no guide, so `guide` was dropped. 0 axes left, so step 4 started 0 reviewers. Step 6 posted nothing: `gh api .../pulls/70/reviews --jq length` printed 0. The report says there was nothing to check, and the hand-off with `pass` printed "Next: /sdlc:ship 70".
+- `review 70 --level ultra` (XS, no guide) -> only `consistency` was left, so step 4 started 1 reviewer with `Axes: consistency` and briefed "Code review guide: none". It reported blocking: harness.md:8 against `orchestrator/SKILL.md:14`, and should-fix: harness.md:8 against harness.md:21. Review https://github.com/cultoftheai/skills/pull/70#pullrequestreview-6008523434 was posted. Its comments start with [":robot: [consistency] **blocking**: The new l",":robot: [consistency] **should-fix**: The Cla"]. The review count went from 0 to 1.
+- `python3 skills/misc/create-skill/scripts/lint_skill.py skills/sdlc/review` -> PASS.
+- Cleanup -> PR #70 closed and its branch deleted.
+
+## Assumptions
+- No QA guide. I ran the skill by following `skills/sdlc/review/SKILL.md` at the commit under test.
+- The fixes for threads 3 to 5 change only wording, so this run checks the one behaviour change, thread 1. The `high` path with an issue and a guide has the same text as the passing run below.
+
 ## Run 2026-11-21T22:01:08Z
 Commit: 1eb9582c633561c0cf24a4127d5d7158cdba3176
 Result: pass
