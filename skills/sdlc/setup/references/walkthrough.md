@@ -16,7 +16,7 @@ Detect first. Each question then shows the detected value, or the schema default
 | `sizing.risk_paths` | Tracked folders (`git ls-files`) whose name holds `migration`, `security`, `auth`, `payment` or `checkout`. Suggest `<folder>/**` for each. Skip vendored and generated folders. |
 | `research.engine` | A web search or documentation tool that is connected in this session. Use its name as the harness lists it. None: `null`. |
 
-- Look for guide files at the repo root and in `.sdlc/`. Compare names without case. When several files match, show all of them. With `--auto`, take the first match in the order above.
+- Look for guide files at the repo root and in `.sdlc/`. Compare names without case. When several files match, each is an option, up to the cap under Options. With `--auto`, take the first match in the order above.
 - A path in the settings file is relative to the repo root.
 
 ## Options
