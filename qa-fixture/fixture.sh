@@ -11,10 +11,12 @@ mul() {
 
 div() {
     case "$2" in
-        '' | *[!0-9]*) echo "div: the divisor must be a number" >&2; exit 1 ;;
-        0) echo "div: cannot divide by zero" >&2; exit 1 ;;
+        '' | - | *[!0-9-]* | ?*-*) echo "div: the divisor must be a whole number" >&2; exit 1 ;;
     esac
-    echo $(($1 / $2))
+    sign=${2%%[0-9]*}
+    d=$(printf '%s\n' "${2#-}" | sed 's/^0*//')
+    [ -n "$d" ] || { echo "div: cannot divide by zero" >&2; exit 1; }
+    echo $(($1 / ${sign}d))
 }
 
 greet() {
