@@ -8,7 +8,7 @@ Size: S task of M story #45 confirmed. 1 module (sdlc), no risk path, about 180 
 
 | After, result | Advice | Reason in the line |
 |---|---|---|
-| build pass, prove fail | compact | the next step continues this work |
+| prove fail | compact | the next step continues this work |
 | prove pass, submit fail, document, frame fail | keep | the next step follows on directly |
 | any other | clear | the next step starts from the issue, task folder or PR |
 
@@ -26,7 +26,7 @@ A new `context_line` function in `next_step.sh`, called from the main block befo
 - `.sdlc/scripts/next_step.sh` - the same copy, as installed in this repo
 - `skills/sdlc/next/tests/helpers.sh` - `context_line` helper: the line before the last
 - `skills/sdlc/next/tests/test_next_step.sh` - the tests below
-- `skills/sdlc/{setup,frame,slice,shape,build,prove,submit,review,respond,document,ship,retro}/SKILL.md` - "print its output as the last line" becomes "print its output as the last lines"; build and prove pass `--keep` with the open items of the run
+- `skills/sdlc/{setup,frame,slice,shape,build,prove,submit,review,respond,document,ship,retro}/SKILL.md` - "print its output as the last line" becomes "print its output as the last lines"; prove passes `--keep` with the open items of the run
 - `skills/sdlc/next/SKILL.md` - the subagent returns, and the report prints, the last `Context:` line too
 - `README.md` - the line on `Next:` names the `Context:` line
 
