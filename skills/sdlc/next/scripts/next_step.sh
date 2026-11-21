@@ -441,6 +441,23 @@ after_retro() {
     next_ready
 }
 
+# Print the Context: line for the skill that just ran: clear, compact or keep the session context.
+context_line() {
+    case "$AFTER:$FAILED" in
+        build: | prove:1) printf 'Context: compact - the next step continues this work. Run /compact%s\n' "$(keep_list)" ;;
+        prove: | submit:1 | document:* | frame:1) printf 'Context: keep - the next step follows on directly.\n' ;;
+        *) printf 'Context: clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command.\n' ;;
+    esac
+}
+
+# Print what a compaction keeps: the issue and the branch, each when known.
+keep_list() {
+    branch=$(git branch --show-current 2> /dev/null)
+    list=${REF:+"issue #$REF"}
+    [ -z "$branch" ] || list="${list:+$list, }branch $branch"
+    printf '%s' "${list:+ Keep $list}"
+}
+
 # Print the harness: SDLC_HARNESS, else claude-code when CLAUDECODE is set, else codex when a CODEX_ variable is set.
 detect_harness() {
     if one_of "${SDLC_HARNESS:-}" 'claude-code codex'; then
@@ -493,7 +510,8 @@ decide() {
 
 parse_args "$@"
 parse_ref
-case "${HARNESS:-$(detect_harness)}" in
+HARNESS=${HARNESS:-$(detect_harness)}
+case "$HARNESS" in
     codex) PREFIX='$' ;;
     *) PREFIX='/sdlc:' ;;
 esac
@@ -503,6 +521,9 @@ if [ ! -f "$SETTINGS" ]; then
 fi
 ERROR_FILE=$(mktemp)
 trap 'rm -f "$ERROR_FILE"' EXIT
+if [ -n "$AFTER" ] && [ "$HARNESS" = claude-code ]; then
+    context_line
+fi
 if step=$(decide); then
     printf 'Next: %s\n' "$(render "$step")"
     exit 0

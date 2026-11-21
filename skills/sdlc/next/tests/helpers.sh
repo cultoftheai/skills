@@ -89,6 +89,11 @@ next_line() {
     "$SH" "$NEXT_STEP" "$@" 2> /dev/null | tail -n 1
 }
 
+# Print the Context: line that next_step.sh prints for the arguments, or nothing.
+context_line() {
+    "$SH" "$NEXT_STEP" "$@" 2> /dev/null | sed -n 's/^Context: //p'
+}
+
 # Print the logged gh calls whose arguments start with the prefix.
 gh_calls() {
     grep -- "^$1" "$TEST_TMP/gh.log"

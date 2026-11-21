@@ -51,7 +51,7 @@ test_auto_is_added_to_commands_and_waits() {
 test_codex_form_from_flag_and_environment() {
     assert_eq "$(next_line 5 --after prove --harness codex)" 'Next: $submit 5'
     assert_eq "$(CODEX_SANDBOX=seatbelt "$SH" "$NEXT_STEP" 5 --after prove)" 'Next: $submit 5'
-    assert_eq "$(CLAUDECODE=1 "$SH" "$NEXT_STEP" 5 --after prove)" "Next: /sdlc:submit 5"
+    assert_eq "$(CLAUDECODE=1 "$SH" "$NEXT_STEP" 5 --after prove | tail -n 1)" "Next: /sdlc:submit 5"
     assert_eq "$(SDLC_HARNESS=codex CLAUDECODE=1 "$SH" "$NEXT_STEP" 5 --after prove)" 'Next: $submit 5'
 }
 
@@ -69,7 +69,7 @@ test_hash_ref_is_a_number() {
 test_unknown_number_prints_a_next_line_and_exits_1() {
     output=$("$SH" "$NEXT_STEP" 404 --after review 2> /dev/null)
     assert_eq $? 1
-    assert_eq "$output" "Next: fix this error (#404 is not an issue or a pull request), then run /sdlc:next 404"
+    assert_eq "$(printf '%s\n' "$output" | tail -n 1)" "Next: fix this error (#404 is not an issue or a pull request), then run /sdlc:next 404"
 }
 
 test_gh_failure_names_its_error() {
@@ -265,4 +265,18 @@ test_route_pull_request_states() {
 test_bot_approval_is_not_a_person() {
     pr 15 4 '{reviews: [review("APPROVED"; "ci-bot"; "Bot")]}'
     assert_eq "$(next_line 15)" "Next: /sdlc:document 4"
+}
+
+test_context_advice_by_skill_and_result() {
+    pr 9 5 '{state: "MERGED"}'
+    assert_eq "$(context_line 5 --after build)" "compact - the next step continues this work. Run /compact Keep issue #5"
+    assert_eq "$(context_line 5 --after prove --result fail)" "compact - the next step continues this work. Run /compact Keep issue #5"
+    assert_eq "$(context_line 5 --after prove)" "keep - the next step follows on directly."
+    assert_eq "$(context_line 5 --after submit --result fail)" "keep - the next step follows on directly."
+    assert_eq "$(context_line 9 --after document)" "keep - the next step follows on directly."
+    assert_eq "$(context_line - --after frame --result fail)" "keep - the next step follows on directly."
+    assert_eq "$(context_line - --after frame)" "clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command."
+    assert_eq "$(context_line - --after build --result fail)" "clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command."
+    assert_eq "$(context_line 9 --after ship)" "clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command."
+    assert_eq "$(context_line - --after retro)" "clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command."
 }
