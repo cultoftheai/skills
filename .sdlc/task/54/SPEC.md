@@ -19,12 +19,12 @@ Size: S task of M story #45 confirmed. 1 module (sdlc), no risk path, about 180 
 `--keep "<text>"` is a new flag: the open items of the run. Leave out the issue for `-`, the branch when `git branch --show-current` is empty, and the open items when `--keep` is missing.
 
 ## Seam
-A new `context_line` function in `next_step.sh`, called from the main block before the `Next:` line. Tests call the script as they do now and read the line before the last.
+A new `context_line` function in `next_step.sh`, called from the main block before the `Next:` line. Tests call the script as they do now and read the `Context:` line. A separate test checks that it comes right before the `Next:` line.
 
 ## Files
 - `skills/sdlc/next/scripts/next_step.sh` - `--keep`, `context_line`, the usage comment
 - `.sdlc/scripts/next_step.sh` - the same copy, as installed in this repo
-- `skills/sdlc/next/tests/helpers.sh` - `context_line` helper: the line before the last
+- `skills/sdlc/next/tests/helpers.sh` - `context_line` helper: the `Context:` line of the output
 - `skills/sdlc/next/tests/test_next_step.sh` - the tests below
 - `skills/sdlc/{setup,frame,slice,shape,build,prove,submit,review,respond,document,ship,retro}/SKILL.md` - "print its output as the last line" becomes "print its output as the last lines"; prove passes `--keep` with the open items of the run
 - `skills/sdlc/next/SKILL.md` - the subagent returns, and the report prints, the last `Context:` line too
