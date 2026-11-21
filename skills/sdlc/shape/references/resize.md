@@ -9,5 +9,5 @@ After reading the code, raise the size when one of these holds. A spec over its 
 
 How to raise it:
 
-1. Raise the size on the story when the task has a parent, or on the task when it has none: `sh .sdlc/scripts/size.sh <issue> L`. When the spec is only too long, raise an S to M instead.
+1. Raise the size to L on the story when the task has a parent, or on the task when it has none, as the tracker reference says. When the spec is only too long, raise an S to M instead.
 2. Write the signal that changed in a comment on the issue whose size changed. Write no spec.
