@@ -13,8 +13,9 @@
 #   With "-", it names the next ready task.
 # - With --after in Claude Code, a Context: line comes before the Next: line.
 #   It advises to clear, compact or keep the session context, from the skill
-#   that ran and its result. Without settings it advises clear before setup. A compact names the issue, the branch and the
-#   open items that --keep gives.
+#   that ran and its result. Without settings it advises clear before setup.
+#   A compact names the issue, the branch and the open items that --keep
+#   gives.
 # - --auto adds --auto to the printed command.
 # - --harness picks the command form. Default: the SDLC_HARNESS environment
 #   variable, else detected from the environment, else claude-code.
