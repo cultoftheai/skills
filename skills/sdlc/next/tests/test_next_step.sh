@@ -278,7 +278,8 @@ test_context_advice_by_skill_and_result() {
     assert_eq "$(context_line - --after frame)" "keep - the next step follows on directly."
     assert_eq "$(context_line - --after build --result fail)" "compact - the next step continues this work. Run /compact"
     assert_eq "$(context_line 9 --after ship)" "clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command."
-    assert_eq "$(context_line - --after retro)" "clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command."
+    assert_eq "$(context_line - --after retro)" "clear - the next step starts from your request. Run /clear before the next command."
+    assert_eq "$(context_line - --after setup)" "clear - the next step starts from your request. Run /clear before the next command."
 }
 
 test_compact_after_a_spec_review_with_findings() {

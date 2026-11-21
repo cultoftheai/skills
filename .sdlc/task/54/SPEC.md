@@ -10,6 +10,7 @@ Size: S task of M story #45 confirmed. 1 module (sdlc), no risk path, about 180 
 |---|---|---|
 | prove fail, build fail with `-`, review fail with the next step "apply the review findings" | compact | the next step continues this work |
 | prove pass, document, frame fail, frame pass with `-` | keep | the next step follows on directly |
+| next step `frame "<your first request>"` or `frame "<your next request>"` | clear | the next step starts from your request |
 | any other | clear | the next step starts from the issue, task folder or PR |
 
 - `Context: clear - <reason>. Run /clear before the next command.`
