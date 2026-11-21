@@ -291,6 +291,12 @@ test_compact_keeps_issue_branch_and_open_items() {
         "compact - the next step continues this work. Run /compact Keep branch 54-context-advice, open items: the login test"
 }
 
+test_compact_keeps_open_items_on_one_line() {
+    git init -q -b 54-context-advice .
+    assert_eq "$(context_line 5 --after prove --result fail --keep "$(printf 'lint fails\nthe login test')")" \
+        "compact - the next step continues this work. Run /compact Keep issue #5, branch 54-context-advice, open items: lint fails the login test"
+}
+
 test_context_line_comes_right_before_the_next_line() {
     lines=$("$SH" "$NEXT_STEP" 5 --after prove 2> /dev/null)
     assert_eq "$lines" "Context: keep - the next step follows on directly.

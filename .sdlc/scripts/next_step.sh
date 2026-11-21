@@ -463,7 +463,7 @@ keep_list() {
     branch=$(git branch --show-current 2> /dev/null)
     list=${REF:+"issue #$REF"}
     [ -z "$branch" ] || list="${list:+$list, }branch $branch"
-    [ -z "$OPEN_ITEMS" ] || list="${list:+$list, }open items: $OPEN_ITEMS"
+    [ -z "$OPEN_ITEMS" ] || list="${list:+$list, }open items: $(printf '%s' "$OPEN_ITEMS" | tr -s '\n' ' ')"
     printf '%s' "${list:+ Keep $list}"
 }
 
