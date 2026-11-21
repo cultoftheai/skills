@@ -281,6 +281,14 @@ test_context_advice_by_skill_and_result() {
     assert_eq "$(context_line - --after retro)" "clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command."
 }
 
+test_compact_after_a_spec_review_with_findings() {
+    issue 5 shaped,size:S
+    pr 9 5
+    assert_eq "$(context_line 5 --after review --result fail --keep 'the spec has no test plan')" \
+        "compact - the next step continues this work. Run /compact Keep issue #5, open items: the spec has no test plan"
+    assert_eq "$(context_line 9 --after review --result fail)" "clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command."
+}
+
 test_compact_keeps_issue_branch_and_open_items() {
     git init -q -b 54-context-advice .
     assert_eq "$(context_line 5 --after prove --result fail --keep '2 failing checks')" \

@@ -13,9 +13,9 @@
 #   With "-", it names the next ready task.
 # - With --after in Claude Code, a Context: line comes before the Next: line.
 #   It advises to clear, compact or keep the session context, from the skill
-#   that ran and its result. Without settings it advises clear before setup.
-#   A compact names the issue, the branch and the open items that --keep
-#   gives.
+#   that ran, its result and the next step. Without settings it advises clear
+#   before setup. A compact names the issue, the branch and the open items
+#   that --keep gives.
 # - --auto adds --auto to the printed command.
 # - --harness picks the command form. Default: the SDLC_HARNESS environment
 #   variable, else detected from the environment, else claude-code.
@@ -446,16 +446,16 @@ after_retro() {
     next_ready
 }
 
-# Print the Context: line for the skill that just ran, with --after in Claude Code: clear, compact or keep the session context.
+# Print the Context: line for the skill that just ran and the next step, with --after in Claude Code: clear, compact or keep the session context.
 context_line() {
     [ -n "$AFTER" ] && [ "$HARNESS" = claude-code ] || return 0
     if [ ! -f "$SETTINGS" ]; then
         printf 'Context: clear - setup needs nothing from this session. Run /clear before the next command.\n'
         return
     fi
-    case "$AFTER:$FAILED" in
-        prove:1) printf 'Context: compact - the next step continues this work. Run /compact%s\n' "$(keep_list)" ;;
-        prove: | document:* | frame:1) printf 'Context: keep - the next step follows on directly.\n' ;;
+    case "$AFTER:$FAILED:${1:-}" in
+        prove:1:* | review:1:'apply the review findings'*) printf 'Context: compact - the next step continues this work. Run /compact%s\n' "$(keep_list)" ;;
+        prove::* | document:*:* | frame:1:*) printf 'Context: keep - the next step follows on directly.\n' ;;
         *) printf 'Context: clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command.\n' ;;
     esac
 }
@@ -535,7 +535,7 @@ fi
 ERROR_FILE=$(mktemp)
 trap 'rm -f "$ERROR_FILE"' EXIT
 if step=$(decide); then
-    context_line
+    context_line "$step"
     printf 'Next: %s\n' "$(render "$step")"
     exit 0
 fi

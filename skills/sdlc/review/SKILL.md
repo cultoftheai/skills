@@ -51,7 +51,7 @@ flowchart TD
 5. **Verify findings** - Read the findings file. Check that each cited file, line and criterion exists. Drop a finding only when its citation does not exist, and say so in the report. On a spec or design, keep the five most severe.
 6. **Post review** - On a PR, post one review with `gh api repos/{owner}/{repo}/pulls/<pr>/reviews --input <file>`. Set `event` to `COMMENT` and `commit_id` to the head SHA. Put each finding with a line in the diff as an inline comment. Put the other findings and the criteria table in the review body. Start each comment and the body with `review.prefix`. On a spec or design, skip this step.
 7. **Report** - Give the report from the Output section.
-8. **Hand off** - Run `sh .sdlc/scripts/next_step.sh <pr-or-issue> --after review --result <pass|fail>`, with `--auto` when this run has it. Use `pass` when no finding is left, `fail` when one is. Print its output as the last lines.
+8. **Hand off** - Run `sh .sdlc/scripts/next_step.sh <pr-or-issue> --after review --result <pass|fail>`, with `--auto` when this run has it. Use `pass` when no finding is left, `fail` when one is. On a spec or design with findings, add `--keep "<the findings>"`, so that a compact keeps them. Print its output as the last lines.
 
 ## Rules
 
