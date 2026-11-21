@@ -7,6 +7,7 @@
   "required": [
     "default_branch",
     "guides",
+    "templates",
     "issue",
     "task",
     "spec",
@@ -69,12 +70,73 @@
         }
       }
     },
+    "templates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "story",
+        "epic",
+        "task",
+        "spec",
+        "design",
+        "review",
+        "retro"
+      ],
+      "properties": {
+        "story": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/story.md",
+          "description": "The issue body of a story or task. A skill uses its own copy when the file does not exist."
+        },
+        "epic": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/epic.md",
+          "description": "The issue body of an epic. A skill uses its own copy when the file does not exist."
+        },
+        "task": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/task.md",
+          "description": "The template of the issue body of a task that slice creates. A skill uses its own copy when the file does not exist."
+        },
+        "spec": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/spec.md",
+          "description": "The template of the SPEC.md of a task. A skill uses its own copy when the file does not exist."
+        },
+        "design": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/design.md",
+          "description": "The template of the DESIGN.md of an L story. A skill uses its own copy when the file does not exist."
+        },
+        "review": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/review.md",
+          "description": "The template of the REVIEW.md of a pull request. A skill uses its own copy when the file does not exist."
+        },
+        "retro": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/templates/retro.md",
+          "description": "The template of the RETRO.md of a task. A skill uses its own copy when the file does not exist."
+        }
+      }
+    },
     "issue": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "tracker",
-        "estimation"
+        "estimation",
+        "project",
+        "stages",
+        "size_field",
+        "types"
       ],
       "properties": {
         "tracker": {
@@ -94,6 +156,155 @@
           ],
           "default": "tshirt",
           "description": "The effort estimate. tshirt uses the size labels XS to XL, fibonacci uses story points."
+        },
+        "project": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "default": null,
+          "description": "The Jira project key or the Linear team key where the skills create issues. Null on GitHub."
+        },
+        "stages": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ready",
+            "shaped",
+            "in-progress",
+            "review",
+            "done",
+            "blocked"
+          ],
+          "default": {
+            "ready": null,
+            "shaped": null,
+            "in-progress": null,
+            "review": null,
+            "done": null,
+            "blocked": null
+          },
+          "description": "The native status (Jira) or workflow state (Linear) of each stage. Null uses a label named after the stage. Always null on GitHub.",
+          "properties": {
+            "ready": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the ready stage, or null for the ready label."
+            },
+            "shaped": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the shaped stage, or null for the shaped label."
+            },
+            "in-progress": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the in-progress stage, or null for the in-progress label."
+            },
+            "review": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the review stage, or null for the review label."
+            },
+            "done": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the done stage, or null for the done label."
+            },
+            "blocked": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the blocked stage, or null for the blocked label."
+            }
+          }
+        },
+        "size_field": {
+          "enum": [
+            "label",
+            "estimate"
+          ],
+          "default": "label",
+          "description": "Where the size XS to XL goes. estimate uses the T-shirt estimate of a Linear team. label uses the size:XS to size:XL labels."
+        },
+        "types": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "epic",
+            "story",
+            "task",
+            "subtask"
+          ],
+          "default": {
+            "epic": null,
+            "story": null,
+            "task": null,
+            "subtask": null
+          },
+          "description": "The native issue type of each kind of issue. Null sets no type.",
+          "properties": {
+            "epic": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The type of an epic."
+            },
+            "story": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The type of a story."
+            },
+            "task": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The type of a task with no parent story."
+            },
+            "subtask": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The type of a task under a story."
+            }
+          }
         }
       }
     },
