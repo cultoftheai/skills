@@ -300,6 +300,12 @@ test_compact_keeps_issue_branch_and_open_items() {
         "compact - the next step continues this work. Run /compact Keep branch 54-context-advice, open items: the login test"
 }
 
+test_compact_after_an_xs_build_stop_keeps_the_signal() {
+    git init -q -b fix-typo .
+    assert_eq "$(context_line - --after build --result fail --keep 'touches 3 files')" \
+        "compact - the next step continues this work. Run /compact Keep branch fix-typo, open items: touches 3 files"
+}
+
 test_compact_keeps_open_items_on_one_line() {
     git init -q -b 54-context-advice .
     assert_eq "$(context_line 5 --after prove --result fail --keep "$(printf 'lint fails\nthe login test')")" \

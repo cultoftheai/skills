@@ -27,7 +27,7 @@ A new `context_line` function in `next_step.sh`, called from the main block with
 - `.sdlc/scripts/next_step.sh` - the same copy, as installed in this repo
 - `skills/sdlc/next/tests/helpers.sh` - `context_line` helper: the `Context:` line of the output
 - `skills/sdlc/next/tests/test_next_step.sh` - the tests below
-- `skills/sdlc/{setup,frame,slice,shape,build,prove,submit,review,respond,document,ship,retro}/SKILL.md` - "print its output as the last line" becomes "print its output as the last lines"; prove passes `--keep` with the open items of the run, and review with its findings on a spec or design
+- `skills/sdlc/{setup,frame,slice,shape,build,prove,submit,review,respond,document,ship,retro}/SKILL.md` - "print its output as the last line" becomes "print its output as the last lines"; prove passes `--keep` with the open items of the run, build with the XS condition that failed or the re-size signal, and review with its findings on a spec or design
 - `skills/sdlc/next/SKILL.md` - the subagent returns, and the report prints, the last `Context:` line too
 - `README.md` - the line on `Next:` names the `Context:` line
 
