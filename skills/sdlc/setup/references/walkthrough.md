@@ -32,6 +32,7 @@ Ask each key as one question with a list of options. List the options in this or
 - A key with only one option gets `Enter another value` as the second option. On that answer, ask for the value as free text.
 - A free-text answer is always possible.
 - A bundle is a set of keys that is asked as one question. Show its values in the question, and offer `Use these` as the first, recommended option and `Change some` as the last. On `Change some`, ask which values to change as free text. Groups 2, 4 and 6 name their bundles.
+- A bundle holds only the keys that step 3 did not keep.
 - With the bundles, a group has at most four questions. Ask each group in one picker call, as `references/harness.md` says.
 
 ## Groups
