@@ -46,9 +46,9 @@ flowchart TD
 
 ## Flow steps
 
-1. **Load settings** - If `.sdlc/settings.json` or `.sdlc/scripts/` does not exist, stop and print `Next: /setup` as the last line. Read `task.path`, `spec.*`, `sizing.*`, `templates.spec`, `templates.design` and the `guides.development` file. If the guide is `null`, say that you run without one. Read the reference for `issue.tracker`: `references/tracker_github.md`, `references/tracker_jira.md` or `references/tracker_linear.md`. If `--auto` is passed, read `references/auto_mode.md`.
+1. **Load settings** - If `.sdlc/settings.json` or `.sdlc/scripts/` does not exist, stop and print `Next: /setup` as the last line. Read `issue.*`, `task.path`, `spec.*`, `sizing.*`, `templates.spec`, `templates.design` and the `guides.development` file. If the guide is `null`, say that you run without one. Read the reference for `issue.tracker`: `references/tracker_github.md`, `references/tracker_jira.md` or `references/tracker_linear.md`. If `--auto` is passed, read `references/auto_mode.md`.
 2. **Read the issue** - Read the issue with its title, body, labels, parent and sub-issues, as the tracker reference says. Read the parent story and its design, if there is one.
-3. **Can shape?** - If the issue does not have the `ready` label, or it is a story that is not L or already has tasks, go to step 10 and name the cause. If not, go to step 4.
+3. **Can shape?** - If the issue is not at the `ready` stage, or it is a story that is not L or already has tasks, go to step 10 and name the cause. If not, go to step 4.
 4. **Create the folder** - Read `references/task_folder.md` and create the branch and the folder.
 5. **Read the code** - Read the code that the work touches. Count the exact modules, files and changed lines. When a decision needs an outside fact that the code cannot give, run the `research` skill with that one question.
 6. **Size holds?** - Read `references/resize.md`. If a trigger in it holds, raise the size as it says and go to step 10. If not, go to step 7.
