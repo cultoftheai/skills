@@ -69,7 +69,7 @@ test_hash_ref_is_a_number() {
 test_unknown_number_prints_a_next_line_and_exits_1() {
     output=$("$SH" "$NEXT_STEP" 404 --after review 2> /dev/null)
     assert_eq $? 1
-    assert_eq "$(printf '%s\n' "$output" | tail -n 1)" "Next: fix this error (#404 is not an issue or a pull request), then run /sdlc:next 404"
+    assert_eq "$output" "Next: fix this error (#404 is not an issue or a pull request), then run /sdlc:next 404"
 }
 
 test_gh_failure_names_its_error() {

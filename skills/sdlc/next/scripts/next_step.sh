@@ -446,8 +446,9 @@ after_retro() {
     next_ready
 }
 
-# Print the Context: line for the skill that just ran: clear, compact or keep the session context.
+# Print the Context: line for the skill that just ran, with --after in Claude Code: clear, compact or keep the session context.
 context_line() {
+    [ -n "$AFTER" ] && [ "$HARNESS" = claude-code ] || return 0
     if [ ! -f "$SETTINGS" ]; then
         printf 'Context: clear - setup needs nothing from this session. Run /clear before the next command.\n'
         return
@@ -526,16 +527,15 @@ case "$HARNESS" in
     codex) PREFIX='$' ;;
     *) PREFIX='/sdlc:' ;;
 esac
-if [ -n "$AFTER" ] && [ "$HARNESS" = claude-code ]; then
-    context_line
-fi
 if [ ! -f "$SETTINGS" ]; then
+    context_line
     printf 'Next: %s\n' "$(render setup)"
     exit 0
 fi
 ERROR_FILE=$(mktemp)
 trap 'rm -f "$ERROR_FILE"' EXIT
 if step=$(decide); then
+    context_line
     printf 'Next: %s\n' "$(render "$step")"
     exit 0
 fi
