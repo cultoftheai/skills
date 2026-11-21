@@ -45,7 +45,7 @@ flowchart TD
 3. **Ready to run?** - Run `git status --porcelain`. If a file outside the task folder has changes, go to step 6, because the evidence must name a commit. Start the app, or reach the endpoint or command, as the QA guide says. If it does not run, go to step 6. If it runs, go to step 4.
 4. **Run checks** - For each acceptance criterion, check the behaviour where a user, API client or operator meets it. Write down the exact command or action and what you saw.
 5. **Record run** - Add the run at the top of `QA.md` in the format below, then commit `QA.md` alone. XS work does not commit it. On a pass, run `sh .sdlc/scripts/qa_check.sh <task-folder>` and fix `QA.md` until it exits 0. Go to step 7.
-6. **Stop** - Write nothing to `QA.md`. Say why the run stopped: no settings, the changed files, or what you tried and the error. Print `Next: /setup` when the settings are missing. If not, print `Next: /prove <task>` to run after the fix, with `--auto` when this run has it.
+6. **Stop** - Write nothing to `QA.md`. Say why the run stopped: no settings, the changed files, or what you tried and the error. Print `Next: /setup` when the settings are missing. If not, run `sh .sdlc/scripts/next_step.sh <task or -> --after prove --result fail --keep "<why the run stopped>"`, with `--auto` when this run has it, and print its output as the last lines.
 7. **Hand off** - Run `sh .sdlc/scripts/next_step.sh <task or -> --after prove --result <pass|fail>`, with `--auto` when this run has it. On a fail, add `--keep "<open items>"` with the criteria that failed. Print its output as the last lines.
 
 ```
