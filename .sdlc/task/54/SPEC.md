@@ -4,7 +4,7 @@ Task: #54. Story: #45. Design: none.
 Size: S task of M story #45 confirmed. 1 module (sdlc), no risk path, about 180 changed lines in 16 files.
 
 ## Data shape
-`next_step.sh` prints one more line, `Context:`, before `Next:` when it runs with `--after` in Claude Code. It does not print it without `--after` (no hand-off) or in Codex (that is #55). When settings are missing, the advice is always clear: `Context: clear - setup needs nothing from this session. Run /clear before the next command.` Each skill that stops for missing settings prints that line itself in Claude Code, above `Next: /setup`. The advice depends only on `--after` and `--result`:
+`next_step.sh` prints one more line, `Context:`, before `Next:` when it runs with `--after` in Claude Code. It does not print it without `--after` (no hand-off) or in Codex (that is #55). When settings are missing, the advice is always clear: `Context: clear - setup needs nothing from this session. Run /clear before the next command.` Each skill that stops for missing settings prints that line itself in Claude Code, above `Next: /setup`. When `next` runs no skill, it prints the clear line of the table itself in Claude Code. The advice depends only on `--after` and `--result`:
 
 | After, result | Advice | Reason in the line |
 |---|---|---|
