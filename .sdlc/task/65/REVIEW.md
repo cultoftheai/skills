@@ -1,5 +1,11 @@
 # Review of #69
 
+## Round 2, 2026-11-21
+
+| Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
+|---|---|---|---|---|---|---|
+| https://github.com/cultoftheai/skills/pull/69#discussion_r4655261838 | jakubtobiasz | The description says one reviewer, or three at ultra, but dropped axes mean ultra can start fewer and high none | minor | high | fix | 5c236cf |
+
 ## Round 1, 2026-11-21
 
 | Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
