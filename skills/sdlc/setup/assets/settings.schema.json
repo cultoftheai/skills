@@ -132,7 +132,11 @@
       "additionalProperties": false,
       "required": [
         "tracker",
-        "estimation"
+        "estimation",
+        "project",
+        "stages",
+        "size_field",
+        "types"
       ],
       "properties": {
         "tracker": {
@@ -152,6 +156,155 @@
           ],
           "default": "tshirt",
           "description": "The effort estimate. tshirt uses the size labels XS to XL, fibonacci uses story points."
+        },
+        "project": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "default": null,
+          "description": "The Jira project key or the Linear team key where the skills create issues. Null on GitHub."
+        },
+        "stages": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ready",
+            "shaped",
+            "in-progress",
+            "review",
+            "done",
+            "blocked"
+          ],
+          "default": {
+            "ready": null,
+            "shaped": null,
+            "in-progress": null,
+            "review": null,
+            "done": null,
+            "blocked": null
+          },
+          "description": "The native status (Jira) or workflow state (Linear) of each stage. Null uses a label named after the stage. Always null on GitHub.",
+          "properties": {
+            "ready": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the ready stage, or null for the ready label."
+            },
+            "shaped": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the shaped stage, or null for the shaped label."
+            },
+            "in-progress": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the in-progress stage, or null for the in-progress label."
+            },
+            "review": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the review stage, or null for the review label."
+            },
+            "done": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the done stage, or null for the done label."
+            },
+            "blocked": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The status of the blocked stage, or null for the blocked label."
+            }
+          }
+        },
+        "size_field": {
+          "enum": [
+            "label",
+            "estimate"
+          ],
+          "default": "label",
+          "description": "Where the size XS to XL goes. estimate uses the T-shirt estimate of a Linear team. label uses the size:XS to size:XL labels."
+        },
+        "types": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "epic",
+            "story",
+            "task",
+            "subtask"
+          ],
+          "default": {
+            "epic": null,
+            "story": null,
+            "task": null,
+            "subtask": null
+          },
+          "description": "The native issue type of each kind of issue. Null sets no type.",
+          "properties": {
+            "epic": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The type of an epic."
+            },
+            "story": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The type of a story."
+            },
+            "task": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The type of a task with no parent story."
+            },
+            "subtask": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "default": null,
+              "description": "The type of a task under a story."
+            }
+          }
         }
       }
     },

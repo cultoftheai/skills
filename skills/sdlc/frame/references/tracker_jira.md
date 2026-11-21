@@ -7,16 +7,15 @@ Do each operation with the Jira tool that is connected in the session. If no Jir
 Search with this JQL:
 
 ```
-text ~ "<terms>" ORDER BY updated DESC
+project = <issue.project> AND text ~ "<terms>" ORDER BY updated DESC
 ```
 
-- Add `project = <KEY> AND` in front of the JQL when the request or the existing issue names a project.
 - An issue is open when its status category is not `done`.
 - Report each match by its key, such as `ABC-12`, its summary and its status.
 
 ## Create
 
-Create the issue in the project of its parent, or in the project that the person names. A story is the `Story` type, a task the `Task` type and an epic the `Epic` type. To create it under an epic, set its parent to the epic key.
+Create the issue in the project `issue.project`, with the type that `issue.types` gives for its kind: `epic`, `story`, `task`. To create it under an epic, set its parent to the epic key.
 
 ## Edit
 
@@ -32,4 +31,4 @@ Add the label `size:<size>` and remove every other size label: `size:XS`, `size:
 
 ## Stage
 
-Add the stage label and remove every other stage label: `ready`, `shaped`, `in-progress`, `review`, `done`, `blocked`.
+Move the issue to the status that `issue.stages` gives for the stage. When it gives `null`, add the stage label instead. Then remove every other stage label: `ready`, `shaped`, `in-progress`, `review`, `done`, `blocked`. The stage of an issue is the stage whose status it has, or else its stage label.

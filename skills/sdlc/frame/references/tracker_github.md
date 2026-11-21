@@ -11,7 +11,7 @@ gh issue list --state all --search "<terms>" --json number,title,state,url --lim
 
 ## Create
 
-`gh issue create --title "<title>" --body-file <file>`. Add `--parent <issue>` to create it under an epic.
+`gh issue create --title "<title>" --body-file <file>`. Add `--type <type>` when `issue.types` has a type for the kind of issue: `epic`, `story`, `task`. Add `--parent <issue>` to create it under an epic.
 
 ## Edit
 
@@ -27,4 +27,4 @@ gh issue list --state all --search "<terms>" --json number,title,state,url --lim
 
 ## Stage
 
-`sh .sdlc/scripts/stage.sh <issue> <stage>`
+Set it with `sh .sdlc/scripts/stage.sh <issue> <stage>`. The stage of an issue is its stage label: `ready`, `shaped`, `in-progress`, `review`, `done`, `blocked`.

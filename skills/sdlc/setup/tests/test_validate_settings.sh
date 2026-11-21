@@ -6,7 +6,9 @@ VALID='{
   "templates": {"story": ".sdlc/templates/story.md", "epic": ".sdlc/templates/epic.md", "task": ".sdlc/templates/task.md",
                 "spec": ".sdlc/templates/spec.md", "design": ".sdlc/templates/design.md",
                 "review": ".sdlc/templates/review.md", "retro": ".sdlc/templates/retro.md"},
-  "issue": {"tracker": "github", "estimation": "tshirt"},
+  "issue": {"tracker": "github", "estimation": "tshirt", "project": null,
+            "stages": {"ready": null, "shaped": null, "in-progress": null, "review": null, "done": null, "blocked": null},
+            "size_field": "label", "types": {"epic": null, "story": null, "task": null, "subtask": null}},
   "task": {"path": ".sdlc/task", "keep": true},
   "spec": {"storage": "local", "review": "manual"},
   "review": {"resolve": "reviewer", "prefix": ":robot:"},
@@ -35,9 +37,21 @@ test_schema_defaults_are_valid() {
 test_every_tracker_and_estimation_is_valid() {
     for tracker in github jira linear; do
         for estimation in none tshirt fibonacci; do
-            assert_eq "$(errors_for ".issue = {tracker: \"$tracker\", estimation: \"$estimation\"}")" valid
+            assert_eq "$(errors_for ".issue.tracker = \"$tracker\" | .issue.estimation = \"$estimation\"")" valid
         done
     done
+}
+
+test_native_mapping_is_valid() {
+    assert_eq "$(errors_for '.issue.tracker = "jira" | .issue.project = "ABC" | .issue.stages.ready = "To Do" | .issue.types.subtask = "Sub-task"')" valid
+}
+
+test_unknown_stage_is_named() {
+    assert_eq "$(errors_for '.issue.stages.shipped = "Done"')" "issue.stages.shipped: unknown key"
+}
+
+test_bad_size_field() {
+    assert_contains "$(errors_for '.issue.size_field = "points"')" "issue.size_field: must be one of"
 }
 
 test_missing_key_is_named() {

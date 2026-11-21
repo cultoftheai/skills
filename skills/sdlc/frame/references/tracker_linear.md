@@ -4,14 +4,14 @@ Do each operation with the Linear tool that is connected in the session. If no L
 
 ## Search
 
-Search with the key terms as the query.
+Search the team `issue.project` with the key terms as the query.
 
 - An issue is open when its state type is not `completed` or `canceled`.
 - Report each match by its identifier, such as `ENG-12`, its title and its state.
 
 ## Create
 
-Create the issue in the team of its parent, or in the team that the person names. To create it under an epic, set its parent issue. Linear shows it as a sub-issue.
+Create the issue in the team `issue.project`. Linear has no issue types. To create it under an epic, set its parent issue.
 
 ## Edit
 
@@ -23,8 +23,8 @@ Add a comment to the issue. To update a comment, edit your own last comment.
 
 ## Size
 
-Add the label `size:<size>` and remove every other size label: `size:XS`, `size:S`, `size:M`, `size:L`, `size:XL`. Create a label when it is missing.
+When `issue.size_field` is `estimate`, set the T-shirt estimate to the size. When it is `label`, add the label `size:<size>` and remove every other size label: `size:XS`, `size:S`, `size:M`, `size:L`, `size:XL`. Create a label in the team when it is missing.
 
 ## Stage
 
-Add the stage label and remove every other stage label: `ready`, `shaped`, `in-progress`, `review`, `done`, `blocked`. Create a label when it is missing.
+Set the workflow state that `issue.stages` gives for the stage. When it gives `null`, add the stage label instead, and create the label in the team when it is missing. Then remove every other stage label: `ready`, `shaped`, `in-progress`, `review`, `done`, `blocked`. The stage of an issue is the stage whose workflow state it has, or else its stage label.
