@@ -4,19 +4,7 @@ Path: `<task.path>/<issue>/REVIEW.md`. `<issue>` is the issue that the pull requ
 
 Put each new round at the top, under the title. Keep the older rounds. Write one row for each thread that the round answered.
 
-```markdown
-# Review of #<pr>
-
-## Round <n>, <ISO date>
-
-| Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
-|---|---|---|---|---|---|---|
-| <URL of the first comment> | <login> | <the concern in one line> | major | high | fix | <commit SHA> |
-
-## Assumptions
-
-- <round n>: <what you decided without asking, and why>
-```
+Fill in the template at `templates.review`. If that setting or file does not exist, use `assets/templates/review.md` and say so in the report.
 
 - **Concern.** Write the concern in your own words. Do not copy the comment.
 - **Evidence.** For fix and fix differently, the commit SHA. For decline, the reason. For needs-you, the decision that a person must make. For follow-up, the issue URL.

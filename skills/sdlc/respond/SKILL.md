@@ -49,7 +49,7 @@ flowchart TD
 
 ## Flow steps
 
-1. **Load settings** - Read `review.prefix`, `review.resolve`, `guides.code_review` and `task.path` from `.sdlc/settings.json`. If the file or `.sdlc/scripts/` does not exist, read `references/standalone.md`. If `--auto` is passed, read `references/auto_mode.md`. If the code review guide is null, tell the user that you run without one.
+1. **Load settings** - Read `review.prefix`, `review.resolve`, `guides.code_review`, `task.path` and `templates.review` from `.sdlc/settings.json`. If the file or `.sdlc/scripts/` does not exist, read `references/standalone.md`. If `--auto` is passed, read `references/auto_mode.md`. If the code review guide is null, tell the user that you run without one.
 2. **Threads to answer?** - Run `sh .sdlc/scripts/review_threads.sh list <pr>`. Keep the threads where `needs_reply` is true. If a thread is kept, go to step 3. If not, go to step 9.
 3. **Triage** - For each thread, read the comments, the code at `path` and `line`, the story or spec, and the code review guide. Give it one outcome: fix, fix differently, decline, needs-you or follow-up. Give it a severity (blocker, major, minor, nit) and your confidence that the reviewer is right (high, medium, low). A thread with `rounds` of 2 or more is needs-you. A product or design decision, or low confidence, is needs-you.
 4. **User confirms?** - Show the triage as one table. Ask the user to confirm it or change outcomes. Settle each needs-you thread with the user here. If the user changes the triage, go to step 3. If the user confirms, go to step 5.
