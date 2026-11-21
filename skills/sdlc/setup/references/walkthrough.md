@@ -27,7 +27,7 @@ Ask in this order. Each group is one message.
    - Ask `issue.tracker` even when it was detected. Offer GitHub (marked as detected when it was), Jira and Linear, and let the person type another tracker. A typed tracker that the schema does not allow is a hard stop: name it and go to step 9. For Jira and Linear, say that the labels and scripts exist only for GitHub so far.
    - `issue.estimation`: `tshirt` estimates with the size labels XS to XL, `fibonacci` with story points, `none` not at all.
 2. Guides: `guides.development`, `guides.code_review`, `guides.qa`, `guides.labeling`. Tell the person that a skill with a `null` guide runs without one and says so.
-3. Tasks and specs: `task.path`, `task.keep` (keep task folders after merge), `spec.storage` (where the spec lives), `spec.review` (whether specs are reviewed).
+3. Tasks and specs: `task.path`, `task.keep` (keep task folders after merge), `spec.storage` (where the spec lives), `spec.review` (whether specs are reviewed), `templates.story` and `templates.epic` (the issue body templates, which step 8 copies in).
 4. Review: `review.resolve` (who resolves a fixed thread), `review.prefix` (the mark on agent replies).
 5. Sizing: Confirm the suggested `sizing.risk_paths`. Show the thresholds with their defaults. Change a threshold only when the person asks.
 6. Retro and research: `retro.scope` (which chats the feature retro reads), `research.engine`.

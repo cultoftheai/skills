@@ -3,6 +3,7 @@
 VALID='{
   "default_branch": "main",
   "guides": {"development": "CONTRIBUTING.md", "code_review": null, "qa": null, "labeling": null},
+  "templates": {"story": ".sdlc/templates/story.md", "epic": ".sdlc/templates/epic.md"},
   "issue": {"tracker": "github", "estimation": "tshirt"},
   "task": {"path": ".sdlc/task", "keep": true},
   "spec": {"storage": "local", "review": "manual"},
