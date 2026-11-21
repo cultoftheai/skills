@@ -1,5 +1,15 @@
 # QA
 
+## Run 2026-11-21T22:21:04Z
+Commit: a5a8f02ecfb628d911979407f8d98daa70986fa6
+Result: pass
+### Steps
+- `python3 skills/misc/create-skill/scripts/lint_skill.py skills/sdlc/review` -> PASS. The frontmatter parses, and the description is 575 characters, under the limit of 1024.
+- `sed -n 3p skills/sdlc/review/SKILL.md` -> the description reads "Starts up to three reviewer subagents with no memory of the build, one for each axis at the ultra level." This matches step 4, which starts 0 to 3 reviewers.
+
+## Assumptions
+- Commit 5c236cf changes only the frontmatter description, which is shown where skills are listed. No behaviour of the flow changes, so the review runs below still hold.
+
 ## Run 2026-11-21T22:10:40Z
 Commit: c83027b605273e0c83ea0f5156f6993cd3b206aa
 Result: pass
