@@ -1,5 +1,12 @@
 # Review of #56
 
+## Round 5, 2026-11-21
+
+| Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
+|---|---|---|---|---|---|---|
+| https://github.com/cultoftheai/skills/pull/56#discussion_r4654285605 | jakubtobiasz | An XS build stop advised compact, but build passed no --keep, so the /compact did not name the failed condition or the re-size signal | minor | high | fix | 9225cf7 |
+| https://github.com/cultoftheai/skills/pull/56#discussion_r4654285609 | jakubtobiasz | A failed hand-off ends with no Context line, against criterion 1 (raised again for the record) | minor | high | decline | Settled in round 3 with the user (r4654180824): a failed hand-off prints an error, not advice. Confirmed by the user again. |
+
 ## Round 4, 2026-11-21
 
 | Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
