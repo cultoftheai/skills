@@ -453,7 +453,7 @@ context_line() {
     fi
     case "$AFTER:$FAILED" in
         prove:1) printf 'Context: compact - the next step continues this work. Run /compact%s\n' "$(keep_list)" ;;
-        prove: | submit:1 | document:* | frame:1) printf 'Context: keep - the next step follows on directly.\n' ;;
+        prove: | document:* | frame:1) printf 'Context: keep - the next step follows on directly.\n' ;;
         *) printf 'Context: clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command.\n' ;;
     esac
 }

@@ -272,7 +272,7 @@ test_context_advice_by_skill_and_result() {
     assert_eq "$(context_line 5 --after build)" "clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command."
     assert_eq "$(context_line 5 --after prove --result fail)" "compact - the next step continues this work. Run /compact Keep issue #5"
     assert_eq "$(context_line 5 --after prove)" "keep - the next step follows on directly."
-    assert_eq "$(context_line 5 --after submit --result fail)" "keep - the next step follows on directly."
+    assert_eq "$(context_line 5 --after submit --result fail)" "clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command."
     assert_eq "$(context_line 9 --after document)" "keep - the next step follows on directly."
     assert_eq "$(context_line - --after frame --result fail)" "keep - the next step follows on directly."
     assert_eq "$(context_line - --after frame)" "clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command."
