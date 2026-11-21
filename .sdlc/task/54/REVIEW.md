@@ -1,5 +1,14 @@
 # Review of #56
 
+## Round 4, 2026-11-21
+
+| Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
+|---|---|---|---|---|---|---|
+| https://github.com/cultoftheai/skills/pull/56#discussion_r4654203591 | jakubtobiasz | A spec or design review with findings advised clear, but the findings are written nowhere a later session can read | blocker | high | fix | b73ca38 |
+| https://github.com/cultoftheai/skills/pull/56#discussion_r4654203598 | jakubtobiasz | XS hand-offs advised clear, though XS work has no issue, task folder or PR and the edit lives only in the session | major | high | fix | b21e33a |
+| https://github.com/cultoftheai/skills/pull/56#discussion_r4654203603 | jakubtobiasz | Before frame "<your first request>" the clear reason named records that do not exist yet; widened to every frame of a new request | nit | high | fix differently | 0e0a391 |
+| https://github.com/cultoftheai/skills/pull/56#discussion_r4654203607 | jakubtobiasz | The README did not say the Context line is printed only in Claude Code | nit | high | fix | d24b850 |
+
 ## Round 3, 2026-11-21
 
 | Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
