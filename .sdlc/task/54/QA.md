@@ -1,4 +1,27 @@
 ## Run 2026-11-21
+Commit: 14a117fe4871d6d5948d304fb6c8702e716414e5
+Result: pass
+### Steps
+- `CLAUDECODE=1 sh .sdlc/scripts/next_step.sh 54 --after <skill> --result <pass|fail>` for setup, frame, slice, shape, build, prove, submit, review, respond, document, ship and retro -> each of the 24 runs exited 0 and printed two lines: a `Context:` line, then `Next:` as the last line. compact for prove fail and for review fail (`Next: apply the review findings to the spec or design of #54, then run /sdlc:document 54`). keep for prove pass, document pass and fail, and frame fail. clear for all the others. Each line names one advice and gives a reason (criteria 1, 2, 4, 5 and 6 pass).
+- The whole matrix of 24 runs ran twice -> identical output (criterion 3 pass).
+- `--after review --result fail --keep "the spec has no test plan"` on issue 54 -> `Context: compact - the next step continues this work. Run /compact Keep issue #54, branch 54-context-advice, open items: the spec has no test plan`. The same under dash with `--keep x`. `56 --after review --result fail` on the PR -> the clear line, then `Next: /sdlc:respond 56`.
+- XS: `- --after frame` -> `Context: keep - the next step follows on directly.` then `Next: /sdlc:build "<the edit in words>"`. `- --after build --result fail` -> `Context: compact - the next step continues this work. Run /compact Keep branch 54-context-advice` then `Next: /sdlc:frame "<the edit in words>"`. `- --after prove --result fail --keep "lint fails"` -> compact with `Keep branch 54-context-advice, open items: lint fails`.
+- `- --after setup`, `- --after retro`, and `54 --after ship` and `54 --after retro` (ready.sh lists nothing) -> `Context: clear - the next step starts from your request. Run /clear before the next command.` above `Next: /sdlc:frame "<your first request>"` or `"<your next request>"`.
+- `--keep` with "a", line break, "b" -> one Context line ending in `open items: a b` (criterion 7 pass).
+- `CLAUDECODE=1 sh .sdlc/scripts/next_step.sh 404 --after review` -> exit 1 and one line only: `Next: fix this error (gh: Could not resolve to an issue or pull request with the number of 404.), then run /sdlc:next 404`.
+- `sh .sdlc/scripts/next_step.sh 54` with no `--after` -> only `Next: /sdlc:document 54`. skills/sdlc/next/SKILL.md step 4 prints the request clear line when the `Next:` line asks for a request, and the records clear line if not, when no skill ran (criterion 8 pass).
+- `env -u CLAUDECODE SDLC_HARNESS=codex sh ... - --after build --result fail` -> only `Next: $frame "<the edit in words>"`, with no Context line (Codex is #55).
+- The script run in a new git repo with no settings, `- --after setup` -> `Context: clear - setup needs nothing from this session. Run /clear before the next command.` then `Next: /sdlc:setup`.
+- review/SKILL.md step 8 -> passes `--keep "<the findings>"` on a spec or design with findings. setup/references/harness.md line 8 -> the fallback after a normal run uses the request clear line. README.md line 37 -> "In Claude Code, a `Context:` line just above it".
+- `diff .sdlc/scripts/next_step.sh skills/sdlc/next/scripts/next_step.sh` -> no difference.
+- `sh skills/sdlc/next/tests/run.sh` and `SH=dash sh skills/sdlc/next/tests/run.sh` -> `38 tests, 0 failed` each.
+
+## Assumptions
+- TESTING.md is a TODO stub, so the run has no QA guide. The real surface is the installed script `.sdlc/scripts/next_step.sh` run as a skill runs it, plus the SKILL.md steps that tell the agent what to print.
+- `CLAUDECODE=1` stands for a Claude Code session, which is how the script detects one.
+- The commit under test is 14a117f. It adds only REVIEW.md on top of d24b850, the last change to the skills, the script and the README.
+
+## Run 2026-11-21
 Commit: 601a09f974c5eb8b37a1d0111211267ce094ba63
 Result: pass
 ### Steps
