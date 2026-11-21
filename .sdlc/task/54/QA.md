@@ -1,4 +1,28 @@
 ## Run 2026-11-21
+Commit: 351600013cc0d146da747373a6c5b337a19fee33
+Result: pass
+### Steps
+- `CLAUDECODE=1 sh .sdlc/scripts/next_step.sh 54 --after <skill> --result <pass|fail>` for setup, frame, slice, shape, build, prove, submit, review, respond, document, ship and retro -> each of the 24 runs exited 0 and printed two lines: a `Context:` line, then `Next:` as the last line. compact for prove fail and for review fail (`Next: apply the review findings to the spec or design of #54, then run /sdlc:document 54`). keep for prove pass, document pass and fail, and frame fail. clear for all the others. Each line names one advice and gives a reason (criteria 1, 2, 4, 5 and 6 pass).
+- The whole matrix of 24 runs ran twice -> identical output (criterion 3 pass).
+- `CLAUDECODE=1 sh .sdlc/scripts/next_step.sh - --after build --result fail --keep "touches 3 files"` -> `Context: compact - the next step continues this work. Run /compact Keep branch 54-context-advice, open items: touches 3 files` then `Next: /sdlc:frame "<the edit in words>"`. The same two lines under dash. Without `--keep` -> `Run /compact Keep branch 54-context-advice`, with no open items.
+- skills/sdlc/build/SKILL.md step 7 -> after a stop in step 2 or 5, adds `--result fail` with `--keep "<the condition that failed or the re-size signal>"`, so that a compact keeps it. `grep -n -- "--keep" skills/sdlc/*/SKILL.md` -> build step 7, prove step 7 and review step 8.
+- `CLAUDECODE=1 sh .sdlc/scripts/next_step.sh 54 --after build --result fail --keep "the spec does not cover the cache decision"` -> the records clear line, then `Next: /sdlc:document 54`. A build stop on a task is clear, as the spec table says, and build step 5 writes the re-size signal in a comment on the issue.
+- `--after prove --result fail --keep "lint fails"` -> `Run /compact Keep issue #54, branch 54-context-advice, open items: lint fails`. With no `--keep` -> `Run /compact Keep issue #54, branch 54-context-advice`. With `-` as the task -> `Run /compact Keep branch 54-context-advice, open items: lint fails` and `Next: /sdlc:build "<the edit in words>"`. `--keep` with "a", line break, "b" -> `open items: a b` on one line (criterion 7 pass).
+- `--after review --result fail --keep "the spec has no test plan"` on 54 -> compact with `open items: the spec has no test plan`. `56 --after review --result fail` on the PR -> the records clear line, then `Next: /sdlc:respond 56`.
+- XS: `- --after frame` -> `Context: keep - the next step follows on directly.` then `Next: /sdlc:build "<the edit in words>"`. `- --after setup` and `- --after retro` -> `Context: clear - the next step starts from your request. Run /clear before the next command.` above `Next: /sdlc:frame "<your first request>"` or `"<your next request>"`.
+- `CLAUDECODE=1 sh .sdlc/scripts/next_step.sh 404 --after review` -> exit 1, an `error:` line and `Next: fix this error (gh: Could not resolve to an issue or pull request with the number of 404.), then run /sdlc:next 404`, with no Context line.
+- `sh .sdlc/scripts/next_step.sh 54` with no `--after` -> only `Next: /sdlc:document 54` (criterion 8 pass).
+- `env -u CLAUDECODE SDLC_HARNESS=codex sh ... - --after build --result fail --keep "touches 3 files"` -> only `Next: $frame "<the edit in words>"`. `env -u CLAUDECODE CODEX_THREAD_ID=t1 sh ... 54 --after prove --result fail` -> only `Next: $build 54`. No Context line in Codex (that is #55).
+- The script run in a new git repo with no settings, `- --after build --result fail --keep "touches 3 files"` -> `Context: clear - setup needs nothing from this session. Run /clear before the next command.` then `Next: /sdlc:setup`, exit 0.
+- `diff .sdlc/scripts/next_step.sh skills/sdlc/next/scripts/next_step.sh` -> no difference.
+- `sh skills/sdlc/next/tests/run.sh` and `SH=dash sh skills/sdlc/next/tests/run.sh` -> `39 tests, 0 failed` each.
+
+## Assumptions
+- TESTING.md is a TODO stub, so the run has no QA guide. The real surface is the installed script `.sdlc/scripts/next_step.sh` run as a skill runs it, plus the SKILL.md steps that tell the agent what to print.
+- `CLAUDECODE=1` stands for a Claude Code session, which is how the script detects one.
+- The commit under test is 3516000. It adds only REVIEW.md of #56 on top of 9225cf7, the last change to the skills and the tests.
+
+## Run 2026-11-21
 Commit: 14a117fe4871d6d5948d304fb6c8702e716414e5
 Result: pass
 ### Steps
