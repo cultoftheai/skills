@@ -45,7 +45,7 @@ flowchart TD
 
 ## Flow steps
 
-1. **Load settings** - If `.sdlc/settings.json` or `.sdlc/scripts/` does not exist, stop and print `Next: /setup` as the last line. Read `task.path`, `spec.*`, `sizing.*` and the `guides.development` file. If the guide is `null`, say that you run without one. If `--auto` is passed, read `references/auto_mode.md`.
+1. **Load settings** - If `.sdlc/settings.json` or `.sdlc/scripts/` does not exist, stop and print `Next: /setup` as the last line. Read `task.path`, `spec.*`, `sizing.*`, `templates.spec`, `templates.design` and the `guides.development` file. If the guide is `null`, say that you run without one. If `--auto` is passed, read `references/auto_mode.md`.
 2. **Read the issue** - Run `gh issue view <issue> --json title,body,labels,parent,subIssues`. Read the parent story and its design, if there is one.
 3. **Can shape?** - If the issue does not have the `ready` label, or it is a story that is not L or already has tasks, go to step 10 and name the cause. If not, go to step 4.
 4. **Create the folder** - Read `references/task_folder.md` and create the branch and the folder.
