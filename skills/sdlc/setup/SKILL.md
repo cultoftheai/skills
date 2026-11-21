@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Use when a repository has no .sdlc/settings.json, when an SDLC skill ends with Next /setup, or when the SDLC settings need new keys. Detects the default branch, tracker, guide files, risk paths and search tools, asks seven short groups of questions, then validates and writes the settings file. After that it offers to create the stage and size labels and add the scripts and templates. Triggers - set up sdlc, configure the sdlc skills, create the sdlc settings, run setup again. Not for adding labels to one issue or for changing one setting by hand.
+description: Use when a repository has no .sdlc/settings.json, when an SDLC skill ends with Next /setup, when the SDLC settings need new keys, or when the team moves to another tracker. Detects the default branch, tracker, guide files, risk paths and search tools, asks seven short groups of questions, then validates and writes the settings file. After that it offers to create the stage and size labels and add the scripts and templates. Triggers - set up sdlc, configure the sdlc skills, create the sdlc settings, run setup again, we are moving from Jira to Linear. Not for adding labels to one issue or for changing one setting by hand.
 argument-hint: [--auto]
 ---
 
@@ -43,7 +43,7 @@ flowchart TD
 
 1. **Check prerequisites** - Record each result for the report: `git rev-parse --show-toplevel` (a Git repo), `gh auth status` (an authenticated `gh`), `git remote get-url origin` (the tracker). If `--auto` is passed, read `references/auto_mode.md`.
 2. **Can continue?** - If there is no Git repo, go to step 9 and name the cause. If not, go to step 3.
-3. **Read current settings** - If `.sdlc/settings.json` exists, run `sh <skill-dir>/scripts/validate_settings.sh`. `<skill-dir>` is the directory of this SKILL.md. Keep every valid value. Each line it prints names a key to ask about. If it prints `valid`, go to step 7.
+3. **Read current settings** - If `.sdlc/settings.json` exists, run `sh <skill-dir>/scripts/validate_settings.sh`. `<skill-dir>` is the directory of this SKILL.md. Keep every valid value. Each line it prints names a key to ask about. If the person asks in words to move to another tracker, such as "we are moving from GitHub to Jira", drop the `issue.tracker`, `issue.project`, `issue.stages`, `issue.size_field` and `issue.types` values. If it prints `valid` and nothing was dropped, go to step 7.
 4. **Detect values** - Read `references/walkthrough.md`. Detect each key that step 3 did not keep.
 5. **Ask the groups** - Ask the seven groups in `references/walkthrough.md` in order, one group for each message. Show the detected value or the schema default for each key. Ask only what detection could not answer, and always ask `issue.tracker` unless step 3 kept it. Skip a group that has no key left to ask.
 6. **Write and validate** - Show the finished file and get a yes. Write `.sdlc/settings.json`, then run `validate_settings.sh` on it. If it prints errors, fix each named key and validate again.
@@ -53,7 +53,7 @@ flowchart TD
 
 ## Rules
 
-1. Never change, drop or ask again about a value that is in the settings file and valid. A kept tracker and its mapping stay as they are.
+1. Never change, drop or ask again about a value that is in the settings file and valid. A kept tracker and its mapping stay as they are, unless the person asks in words to move to another tracker. Never infer a move from the remote or from detection.
 2. Take keys, allowed values and defaults only from `assets/settings.schema.json`.
 3. Set a guide with no file to `null`. Never create a guide file.
 4. Change nothing outside `.sdlc/settings.json` without a yes for that step.
