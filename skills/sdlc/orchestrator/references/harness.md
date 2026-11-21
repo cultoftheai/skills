@@ -5,7 +5,7 @@
 - Start a worker with the `Agent` tool. Put the brief in `prompt` and a few words in `description`.
 - A new `Agent` call starts with an empty context. `subagent_type: "fork"` copies this conversation. Do not fork when a fresh view is the point.
 - Use `subagent_type: "Explore"` for read-only search. Leave `subagent_type` out for work that edits files.
-- Set `isolation: "worktree"` for a worker that edits files. The result names the worktree path and branch when the worker changed something.
+- Workers share the worktree of the parent. Do not set `isolation`, even for a worker that edits files.
 - To run workers in parallel, send several `Agent` calls in one message.
 - Only the final message of the worker comes back to you.
 - `SendMessage` continues a worker with its full context. After a failure, make a new `Agent` call instead.
