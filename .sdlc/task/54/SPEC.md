@@ -33,7 +33,7 @@ A new `context_line` function in `next_step.sh`, called from the main block befo
 ## Test plan
 - each row of the table gives its advice - criteria 2, 3, 4, 5, 6
 - compact with `--keep`, without it, and with `-` - criterion 7
-- `Next:` is still the last line, and no `Context:` line without `--after`, without settings or in Codex - criteria 1, 8
+- `Next:` is still the last line, and no `Context:` line without `--after` or in Codex, and the clear setup line without settings - criteria 1, 8
 
 ## Open questions
 - none
