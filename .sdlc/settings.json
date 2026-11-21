@@ -51,7 +51,7 @@
     "scope": "worktree"
   },
   "research": {
-    "engine": "plugin:exa:exa"
+    "engine": null
   },
   "sizing": {
     "xs_max_files": 2,
