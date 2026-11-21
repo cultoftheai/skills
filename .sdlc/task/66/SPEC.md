@@ -7,7 +7,8 @@ Size: M (story). Confirmed: 2 modules (`skills/sdlc/review`, `skills/sdlc/respon
 - `--verify`: PR targets only. `--level` is ignored with it. With a spec or design target, the skill stops and says so.
 - `review_threads.sh list <pr> --all`: also lists resolved threads. Each thread gets a `resolved` field (false without `--all`). The other fields do not change.
 - Thread to check: a thread from `.sdlc/scripts/review_threads.sh list <pr> --all`, resolved or not, that has a reply naming a commit SHA (the fix reply that `respond` step 7 writes), and whose first comment is not marked `nit`. A thread with no SHA reply is a decline, needs-you or follow-up thread, and is skipped.
-- Fix commits: every SHA named in those replies.
+- Fix commits: the SHAs named in the replies after the newest `[verify]` reply of each thread to check. A thread with no `[verify]` reply gives every SHA in its replies. A thread verified before with no newer fix reply is still checked, but adds no fix commit.
+- Open threads: the threads from the same list with `resolved` false. The reviewer does not report a problem again that an open thread already raises.
 - Verify results JSON: `{"threads": [{thread, result: fixed|not fixed|partly fixed, path, line, evidence}], "findings": [{severity, path, line, finding, evidence}]}`. `findings` holds only problems in lines the fix commits changed, or in lines that contradict them.
 - Reply in each checked thread: `<prefix> [verify] <result>: <path>:<line>`. If the thread already has `review.max_rounds` minus 1 `[verify] not fixed` or `partly fixed` replies and the result is still not `fixed`, the reply ends with "Needs a person: still not fixed after <review.max_rounds> verify rounds."
 - Nit thread: a thread whose first comment marks its severity as `nit` (`nit:` or `[nit]`). `review` step 6 puts the severity after the axis in each finding it posts: `<prefix> [<axis>] <severity>: <finding>`.
@@ -34,7 +35,7 @@ Size: M (story). Confirmed: 2 modules (`skills/sdlc/review`, `skills/sdlc/respon
 - `sh skills/sdlc/respond/tests/run.sh` passes. With `--all`, the new test sees a resolved thread with `resolved: true`, and the existing test still shows that `list` without `--all` skips it.
 - Throwaway PR with 3 review threads: one fixed and resolved, one fixed and left open, one declined. Answer them as `respond` does, then run `review <pr> --verify`. Both fixed threads get `[verify] fixed` with a line, the declined one gets no reply, and the hand-off is `pass` (criteria 1, 3 and 4).
 - On the same PR: a fix commit that adds a new problem, plus a problem planted outside the fix lines. Only the first is reported (criterion 2).
-- A fix that does not fix, verified twice. The second reply says "Needs a person", and `respond` triages the thread as needs-you (criterion 5).
+- Round 2 on the same PR, after one more fix: the fix commits hold only the SHAs named after the newest `[verify]` reply, and a problem that is already an open thread is not reported again.
 - The same run on a PR that closes no issue gives the same results (criterion 6).
 
 ## Open questions
@@ -44,3 +45,5 @@ Size: M (story). Confirmed: 2 modules (`skills/sdlc/review`, `skills/sdlc/respon
 - Nits: the severity goes into each posted finding, so `--verify` can skip the nits that `review` posted (person, 2026-11-21).
 - `rounds` in `review_threads.sh` stays as it is. It also counts `[verify]` replies, so `respond` may stop for a person after one verify round. That is earlier than criterion 5 and safe. #64 covers `needs_reply` when the current user posted the last reply (person, 2026-11-21).
 - `review.max_rounds` and the round limit above (person, 2026-11-21). With `--auto`, the limit takes the recommended option (build assumption).
+- Criterion 5 ("the flow stops on it") is removed from #66 and moves to the bugfix for `needs_reply` (#64). The QA run of 2026-11-21 showed that `respond` never sees a thread whose last reply is a `[verify]` reply from the same gh user. The "Needs a person" reply stays (person, 2026-11-21).
+- Convergence: the fix commits are only the SHAs named after the newest `[verify]` reply, and open threads are not reported again. The QA run showed 5 rounds with 2, 2, 1, 3 and 2 findings, because the fix commits piled up (person, 2026-11-21).
