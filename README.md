@@ -41,7 +41,7 @@ People stay in the loop at these points: they approve the story, approve the PR,
 ## Skill order
 
 ```mermaid
-flowchart TD
+flowchart LR
     setup([setup]) --> frame[frame<br/>story + size]
 
     frame -->|XS| build
