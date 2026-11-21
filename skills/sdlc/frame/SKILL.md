@@ -45,8 +45,8 @@ flowchart TD
 
 ## Flow steps
 
-1. **Load settings** - If `.sdlc/settings.json` or `.sdlc/scripts/` does not exist, stop and print `Next: /setup` as the last line. Read `sizing.*`, `issue.estimation`, `templates.*` and the `guides.labeling` file. If the guide is `null`, say that you run without one. If `--auto` is passed, read `references/auto_mode.md`.
-2. **Find duplicates** - Search open and closed issues for the key terms of the request: `gh issue list --state all --search "<terms>" --json number,title,state`. Skip the issue that you frame again.
+1. **Load settings** - If `.sdlc/settings.json` or `.sdlc/scripts/` does not exist, stop and print `Next: /setup` as the last line. Read `issue.tracker`, `sizing.*`, `issue.estimation`, `templates.*` and the `guides.labeling` file. If the guide is `null`, say that you run without one. If `--auto` is passed, read `references/auto_mode.md`.
+2. **Find duplicates** - Read the reference for `issue.tracker`: `references/search_github.md`, `references/search_jira.md` or `references/search_linear.md`. Search open and closed issues for the key terms of the request as it says. Skip the issue that you frame again.
 3. **Duplicate?** - An open issue with the same outcome is a duplicate. If there is one, go to step 10 and name it. If not, go to step 4.
 4. **Ask questions** - Suggest a depth from the request: light (1 to 5 questions), medium (6 to 10) or deep (more than 10). Ask the person to confirm or change it. Then ask questions up to that depth, only those whose answer changes the scope or an acceptance criterion. Stop early when no open question changes the scope. Read the code only to learn how the system behaves now, never to design.
 5. **Size the work** - Read `references/sizing.md`. Answer its four questions in order, and print the size line.
