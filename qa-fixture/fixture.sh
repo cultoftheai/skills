@@ -15,7 +15,7 @@ div() {
 }
 
 greet() {
-    [ -n "$1" ] || { echo "greet: a name is required"; exit 0; }
+    [ -n "$1" ] || { echo "greet: a name is required" >&2; exit 1; }
     echo "Hello $1"
 }
 
