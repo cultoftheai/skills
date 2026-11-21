@@ -45,8 +45,8 @@ flowchart TD
 3. **Evidence for head?** - Run `sh .sdlc/scripts/qa_check.sh <task-folder>`. If it exits 0, go to step 4. If not, go to step 6.
 4. **Write body** - Fill `assets/pr_body.md`. Take the evidence from the newest run in `QA.md`. Leave out `Closes #<task>` for XS work.
 5. **Open PR** - Run `git push -u origin HEAD`. Run `gh pr create --base <default_branch>` with an imperative title and the body. Then run `sh .sdlc/scripts/stage.sh <task> review`, except for XS work. Go to step 7.
-6. **Stop** - Open no PR. Say why: no settings, or the reason that `qa_check.sh` printed. Print `Next: /setup` when the settings are missing. If not, run `sh .sdlc/scripts/next_step.sh <task or -> --after submit --result fail`, with `--auto` when this run has it, and print its output as the last line.
-7. **Hand off** - Run `sh .sdlc/scripts/next_step.sh <pr> --after submit`, with `--auto` when this run has it. Print its output as the last line.
+6. **Stop** - Open no PR. Say why: no settings, or the reason that `qa_check.sh` printed. Print `Next: /setup` when the settings are missing. If not, run `sh .sdlc/scripts/next_step.sh <task or -> --after submit --result fail`, with `--auto` when this run has it, and print its output as the last lines.
+7. **Hand off** - Run `sh .sdlc/scripts/next_step.sh <pr> --after submit`, with `--auto` when this run has it. Print its output as the last lines.
 
 ## Rules
 

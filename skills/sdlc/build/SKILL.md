@@ -49,7 +49,7 @@ flowchart TD
 4. **Build one unit** - Take the next item of the spec's test plan. Where a seam exists, write the test first and see it fail. A bug fix starts with a failing test that shows the bug. When something breaks, apply `root-cause`. End the unit with a passing check and commit it.
 5. **Within the spec?** - Run `git diff --shortstat origin/<default_branch>...HEAD -- . ':!<task.path>'`. If the inserted plus deleted lines pass `sizing.review_limit`, or the next unit needs a decision that the spec does not cover, stop for a re-size: write the signal in a comment on the issue and go to step 7. If not, go to step 6.
 6. **Units left?** - If the test plan has an item that is not built, go to step 4. If not, go to step 7.
-7. **Report** - Give the report from the Output section. Then run `sh .sdlc/scripts/next_step.sh <ref> --after build`, with `--auto` when it was passed, and print its output as the last line. `<ref>` is the task, or `-` for XS. Add `--result fail` after a stop in step 2 or 5.
+7. **Report** - Give the report from the Output section. Then run `sh .sdlc/scripts/next_step.sh <ref> --after build`, with `--auto` when it was passed, and print its output as the last lines. `<ref>` is the task, or `-` for XS. Add `--result fail` after a stop in step 2 or 5. Add `--keep "<open items>"` with what the run leaves open, such as failing checks or the reason for a stop.
 
 ## Rules
 

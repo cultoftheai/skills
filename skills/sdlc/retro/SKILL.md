@@ -59,7 +59,7 @@ flowchart TD
 7. **Choose form** - For each lesson, take the cheapest form that stops the repeat: a lint rule or a test, then a line in a guide, then an edit to a skill, then a note. Name the file that the lesson changes.
 8. **Get approval** - Show the proposals. Ask the user to accept or reject each one, and ask for the reason of each rejection. Skip this step with `--auto`.
 9. **Record and apply** - Write `RETRO.md` in the format of `references/retro_format.md`. Apply each accepted lesson. Do not commit.
-10. **Hand off** - Run `sh .sdlc/scripts/next_step.sh <task> --after retro`, with `--auto` if it was passed. Use `-` for `<task>` in a repo retro. Print its output as the last line.
+10. **Hand off** - Run `sh .sdlc/scripts/next_step.sh <task> --after retro`, with `--auto` if it was passed. Use `-` for `<task>` in a repo retro. Print its output as the last lines.
 
 ## Rules
 

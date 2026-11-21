@@ -46,7 +46,7 @@ flowchart TD
 4. **Run checks** - For each acceptance criterion, check the behaviour where a user, API client or operator meets it. Write down the exact command or action and what you saw.
 5. **Record run** - Add the run at the top of `QA.md` in the format below, then commit `QA.md` alone. XS work does not commit it. On a pass, run `sh .sdlc/scripts/qa_check.sh <task-folder>` and fix `QA.md` until it exits 0. Go to step 7.
 6. **Stop** - Write nothing to `QA.md`. Say why the run stopped: no settings, the changed files, or what you tried and the error. Print `Next: /setup` when the settings are missing. If not, print `Next: /prove <task>` to run after the fix, with `--auto` when this run has it.
-7. **Hand off** - Run `sh .sdlc/scripts/next_step.sh <task or -> --after prove --result <pass|fail>`, with `--auto` when this run has it. Print its output as the last line.
+7. **Hand off** - Run `sh .sdlc/scripts/next_step.sh <task or -> --after prove --result <pass|fail>`, with `--auto` when this run has it. On a fail, add `--keep "<open items>"` with the criteria that failed. Print its output as the last lines.
 
 ```
 ## Run <ISO date>

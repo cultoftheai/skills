@@ -34,7 +34,7 @@ Then install `sdlc` and `misc` from `/plugins` and start a new session.
 1. Run `/sdlc:setup` once in each repository. It writes `.sdlc/settings.json`, creates the stage and size labels, and adds the scripts.
 2. Give a raw request to `/sdlc:frame`. It writes the story and sets the size.
 3. Run `/sdlc:next`. It reads where the issue or PR stands and runs the skill that comes next. Add `--run` to continue until a person must act, or `--auto` to skip the questions at each gate.
-4. You can also type any skill directly, for example `/sdlc:review 42`. Every skill ends with a `Next:` line that names the command to run after it.
+4. You can also type any skill directly, for example `/sdlc:review 42`. Every skill ends with a `Next:` line that names the command to run after it. Just above it, a `Context:` line says whether to clear, compact or keep the session context, and why.
 
 People stay in the loop at these points: they approve the story, approve the PR, and confirm the merge (unless `--auto`).
 

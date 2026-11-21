@@ -55,7 +55,7 @@ flowchart TD
 7. **Criteria written?** - For XS, go to step 8. If no acceptance criterion can be written as observable behaviour, go to step 10 and say what is missing. If not, go to step 8.
 8. **Approved?** - Show the size line and the story. If the person corrects a signal or the story, go to step 4. If the person approves, go to step 9.
 9. **Create issues** - Create only what the size needs. XS gets nothing, S gets one task, and M and L get one story. XL gets an epic with one child issue for each story. Frame an existing issue in place by editing its body. Add the labels that the labeling guide asks for. On each sized issue, set the size and set the stage to `ready`. Do each of these as the tracker reference says. The stories of an epic get no labels until their own `frame` run.
-10. **Report** - Give the report from the Output section. Then run `sh .sdlc/scripts/next_step.sh <ref> --after frame`, with `--auto` when it was passed, and print its output as the last line. `<ref>` is the new issue, `-` for XS, the duplicate after step 3, or `- --result fail` after a stop in step 2 or 7.
+10. **Report** - Give the report from the Output section. Then run `sh .sdlc/scripts/next_step.sh <ref> --after frame`, with `--auto` when it was passed, and print its output as the last lines. `<ref>` is the new issue, `-` for XS, the duplicate after step 3, or `- --result fail` after a stop in step 2 or 7.
 
 ## Rules
 

@@ -57,7 +57,7 @@ flowchart TD
 6. **Change verified?** - If step 5 changed code, run `prove` on the head commit. If it fails, go to step 5 and fix the failure. If it passes, or if no code changed, push the branch and go to step 7.
 7. **Reply** - For each kept thread, write the reply to a temporary file and run `sh .sdlc/scripts/review_threads.sh reply <thread-id> <file>`. A fix reply gives the commit SHA. A decline gives the reason and the evidence: a file and line, a test, or the spec. A needs-you reply names the decision that a person must make. A follow-up reply links the issue. A reply is posted only when the script prints its URL. If the script fails, run `list` again and retry only the threads where `needs_reply` is still true.
 8. **Resolve and re-request** - If `review.resolve` is `author`, run `sh .sdlc/scripts/review_threads.sh resolve <thread-id>` for each fixed thread. Run `list` again. If no thread has `needs_reply` true, re-request review once from each human reviewer of the answered threads with `gh pr edit <pr> --add-reviewer <login>`.
-9. **Hand off** - Run `sh .sdlc/scripts/next_step.sh <pr> --after respond`, with `--auto` if it was passed. Print its output as the last line.
+9. **Hand off** - Run `sh .sdlc/scripts/next_step.sh <pr> --after respond`, with `--auto` if it was passed. Print its output as the last lines.
 
 ## Rules
 

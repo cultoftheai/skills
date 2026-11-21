@@ -49,7 +49,7 @@ flowchart TD
 5. **One task?** - If the breakdown has one task, the story is an S. Set the size of the story to S as the tracker reference says, create no task, and go to step 8. If not, go to step 6.
 6. **Approved?** - Show the breakdown: each task's title, goal, criteria and blockers. If the person changes it, go to step 4. If the person approves, go to step 7.
 7. **Create tasks** - Create the tasks under the story in blocking order, so that each blocker exists first, each with its blocking links. Add the labels that the labeling guide asks for. Set the stage of each task to `ready`. Do each of these as the tracker reference says.
-8. **Report** - Give the report from the Output section. Then run `sh .sdlc/scripts/next_step.sh <ref> --after slice`, with `--auto` when it was passed, and print its output as the last line. `<ref>` is the first task with no blocker, the story after step 5, or `<story> --result fail` after a stop in step 2 or 3.
+8. **Report** - Give the report from the Output section. Then run `sh .sdlc/scripts/next_step.sh <ref> --after slice`, with `--auto` when it was passed, and print its output as the last lines. `<ref>` is the first task with no blocker, the story after step 5, or `<story> --result fail` after a stop in step 2 or 3.
 
 ## Rules
 

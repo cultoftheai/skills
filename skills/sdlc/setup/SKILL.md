@@ -49,7 +49,7 @@ flowchart TD
 6. **Write and validate** - Show the finished file and get a yes. Write `.sdlc/settings.json`, then run `validate_settings.sh` on it. If it prints errors, fix each named key and validate again.
 7. **Offer labels** - Find the missing labels as `references/trackers.md` says for `issue.tracker`. If any are missing, ask yes or no. On yes, create them as it says.
 8. **Offer scripts** - Ask yes or no. On yes, run `sh <skill-dir>/scripts/install.sh <repo-root>`. If it prints `kept` lines, list those templates and ask whether to keep them or override them. On override, run it again with `--override`.
-9. **Report** - Give the report from the Output section. If `.sdlc/scripts/next_step.sh` exists, run `sh .sdlc/scripts/next_step.sh - --after setup`, with `--auto` when it was passed, and print its output as the last line. If not, read `references/harness.md` and print the fallback `Next:` line for the current harness.
+9. **Report** - Give the report from the Output section. If `.sdlc/scripts/next_step.sh` exists, run `sh .sdlc/scripts/next_step.sh - --after setup`, with `--auto` when it was passed, and print its output as the last lines. If not, read `references/harness.md` and print the fallback `Next:` line for the current harness.
 
 ## Rules
 

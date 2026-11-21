@@ -55,7 +55,7 @@ flowchart TD
 7. **Write it** - Read `references/spec.md` for a task, or `references/design.md` for a story, and write the file. Store it as `spec.storage` says (`references/task_folder.md`).
 8. **Approved?** - If `spec.review` is `auto`, run the `review` skill on the file and apply each blocking finding. If it is `manual`, show the file to the person. If the person asks for changes, go to step 7. If the person approves, or `spec.review` is `off`, go to step 9.
 9. **Mark shaped** - Commit the task folder. Set the stage to `shaped` as the tracker reference says.
-10. **Report** - Give the report from the Output section. Then run `sh .sdlc/scripts/next_step.sh <issue> --after shape`, with `--auto` when it was passed, and print its output as the last line. Add `--result fail` after a stop in step 2, 3 or 6.
+10. **Report** - Give the report from the Output section. Then run `sh .sdlc/scripts/next_step.sh <issue> --after shape`, with `--auto` when it was passed, and print its output as the last lines. Add `--result fail` after a stop in step 2, 3 or 6.
 
 ## Rules
 

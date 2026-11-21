@@ -1,7 +1,7 @@
 #!/bin/sh
 # Print the Next: line, the full command to run after a skill or for an issue.
 #
-# Usage: next_step.sh <issue-or-pr|-> [--after <skill>] [--result pass|fail] [--auto] [--harness claude-code|codex]
+# Usage: next_step.sh <issue-or-pr|-> [--after <skill>] [--result pass|fail] [--keep <open items>] [--auto] [--harness claude-code|codex]
 #
 # - <issue-or-pr> is an issue or PR number. "-" means no issue: XS work, a
 #   first run after setup, or a repo retro.
@@ -11,6 +11,10 @@
 # - Without --after, the script reads where the issue or PR stands (size,
 #   stage, PR state, review threads) and names the skill that comes next.
 #   With "-", it names the next ready task.
+# - With --after in Claude Code, a Context: line comes before the Next: line.
+#   It advises to clear, compact or keep the session context, from the skill
+#   that ran and its result. A compact names the issue, the branch and the
+#   open items that --keep gives.
 # - --auto adds --auto to the printed command.
 # - --harness picks the command form. Default: the SDLC_HARNESS environment
 #   variable, else detected from the environment, else claude-code.
@@ -441,6 +445,24 @@ after_retro() {
     next_ready
 }
 
+# Print the Context: line for the skill that just ran: clear, compact or keep the session context.
+context_line() {
+    case "$AFTER:$FAILED" in
+        build: | prove:1) printf 'Context: compact - the next step continues this work. Run /compact%s\n' "$(keep_list)" ;;
+        prove: | submit:1 | document:* | frame:1) printf 'Context: keep - the next step follows on directly.\n' ;;
+        *) printf 'Context: clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command.\n' ;;
+    esac
+}
+
+# Print what a compaction keeps: the issue, the branch and the open items, each when known.
+keep_list() {
+    branch=$(git branch --show-current 2> /dev/null)
+    list=${REF:+"issue #$REF"}
+    [ -z "$branch" ] || list="${list:+$list, }branch $branch"
+    [ -z "$OPEN_ITEMS" ] || list="${list:+$list, }open items: $OPEN_ITEMS"
+    printf '%s' "${list:+ Keep $list}"
+}
+
 # Print the harness: SDLC_HARNESS, else claude-code when CLAUDECODE is set, else codex when a CODEX_ variable is set.
 detect_harness() {
     if one_of "${SDLC_HARNESS:-}" 'claude-code codex'; then
@@ -454,13 +476,14 @@ detect_harness() {
     fi
 }
 
-# Set RAW_REF, AFTER, FAILED, AUTO and HARNESS from the command line. Exit 2 on bad arguments.
+# Set RAW_REF, AFTER, FAILED, OPEN_ITEMS, AUTO and HARNESS from the command line. Exit 2 on bad arguments.
 parse_args() {
-    RAW_REF='' AFTER='' FAILED='' AUTO='' HARNESS=''
+    RAW_REF='' AFTER='' FAILED='' OPEN_ITEMS='' AUTO='' HARNESS=''
     while [ $# -gt 0 ]; do
         case "$1" in
             --after) [ $# -ge 2 ] && one_of "$2" "$SKILLS" || bad_arguments; AFTER=$2; shift ;;
             --result) [ $# -ge 2 ] && one_of "$2" 'pass fail' || bad_arguments; [ "$2" = pass ] || FAILED=1; shift ;;
+            --keep) [ $# -ge 2 ] || bad_arguments; OPEN_ITEMS=$2; shift ;;
             --harness) [ $# -ge 2 ] && one_of "$2" 'claude-code codex' || bad_arguments; HARNESS=$2; shift ;;
             --auto) AUTO=' --auto' ;;
             -?*) bad_arguments ;;
@@ -493,7 +516,8 @@ decide() {
 
 parse_args "$@"
 parse_ref
-case "${HARNESS:-$(detect_harness)}" in
+HARNESS=${HARNESS:-$(detect_harness)}
+case "$HARNESS" in
     codex) PREFIX='$' ;;
     *) PREFIX='/sdlc:' ;;
 esac
@@ -503,6 +527,9 @@ if [ ! -f "$SETTINGS" ]; then
 fi
 ERROR_FILE=$(mktemp)
 trap 'rm -f "$ERROR_FILE"' EXIT
+if [ -n "$AFTER" ] && [ "$HARNESS" = claude-code ]; then
+    context_line
+fi
 if step=$(decide); then
     printf 'Next: %s\n' "$(render "$step")"
     exit 0
