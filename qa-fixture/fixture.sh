@@ -10,6 +10,7 @@ mul() {
 }
 
 div() {
+    [ "$2" -ne 0 ] || { echo "div: cannot divide by zero" >&2; exit 1; }
     echo $(($1 / $2))
 }
 
