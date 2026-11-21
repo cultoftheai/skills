@@ -63,4 +63,4 @@ flowchart TD
 
 ## Output
 
-- The issues, with their size and stage, and a report: the size line, the issue links, the duplicates found, and the `Next:` line last.
+- The issues, with their size and stage, and a report: the size line, the issue links, the duplicates found, and the `Context:` and `Next:` lines last.

@@ -62,4 +62,4 @@ flowchart TD
 ## Output
 
 - `.sdlc/settings.json`, and, when accepted, the labels, `.sdlc/scripts/` and `.sdlc/templates/`.
-- A report: each prerequisite and its result (Git repo, `gh` login, tracker, whether a tool for a Jira or Linear tracker is connected, and whether the `research.engine` tool is connected), each key as kept, detected, default or chosen, each offer as done, declined, left to do or not available for the tracker, and the `Next:` line last.
+- A report: each prerequisite and its result (Git repo, `gh` login, tracker, whether a tool for a Jira or Linear tracker is connected, and whether the `research.engine` tool is connected), each key as kept, detected, default or chosen, each offer as done, declined, left to do or not available for the tracker, and the `Context:` and `Next:` lines last.

@@ -63,4 +63,4 @@ flowchart TD
 
 - Docs changes and ADRs, in one commit on the PR branch.
 - A report: the pages changed, the ADRs added, each difference between the spec and the build, or the reason for the skip.
-- The `Next:` line as the last line.
+- The `Context:` and `Next:` lines as the last lines.

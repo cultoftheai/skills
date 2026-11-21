@@ -58,4 +58,4 @@ flowchart TD
 
 ## Output
 
-- Commits on the task branch, the task `in-progress`, and a report: the commits, the checks run, the diff size against `sizing.review_limit`, any stop with its reason, and the `Next:` line last.
+- Commits on the task branch, the task `in-progress`, and a report: the commits, the checks run, the diff size against `sizing.review_limit`, any stop with its reason, and the `Context:` and `Next:` lines last.

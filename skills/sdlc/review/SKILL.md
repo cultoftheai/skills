@@ -63,4 +63,4 @@ flowchart TD
 
 - On a PR: one review of type comment, with the findings as inline comments.
 - A report: the findings by severity, blocking first, each with its location and evidence. For a diff, also the result of each acceptance criterion. Say if the run had no guide. Give the review link on a PR.
-- The `Next:` line as the last line.
+- The `Context:` and `Next:` lines as the last lines.

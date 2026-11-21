@@ -63,4 +63,4 @@ flowchart TD
 
 ## Output
 
-- `SPEC.md` or `DESIGN.md` as `spec.storage` says, the issue `shaped`, and a report: the size line (confirmed or raised, with the signal that changed), the file, the review findings, and the `Next:` line last.
+- `SPEC.md` or `DESIGN.md` as `spec.storage` says, the issue `shaped`, and a report: the size line (confirmed or raised, with the signal that changed), the file, the review findings, and the `Context:` and `Next:` lines last.

@@ -66,4 +66,4 @@ flowchart TD
 - The merged PR. With `task.keep` set to `false`, the PR also removes the task folder.
 - The issue at `done`, by the on-merge action or by `on_merge.sh`.
 - A report: the gate lines, the merge commit, and what was cleaned up.
-- The `Next:` line as the last line.
+- The `Context:` and `Next:` lines as the last lines.

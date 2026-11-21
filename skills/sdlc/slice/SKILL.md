@@ -58,4 +58,4 @@ flowchart TD
 
 ## Output
 
-- Task sub-issues of the story, `ready`, with native blocking links, and a report: each task with its blockers, any re-size with its reason, and the `Next:` line last.
+- Task sub-issues of the story, `ready`, with native blocking links, and a report: each task with its blockers, any re-size with its reason, and the `Context:` and `Next:` lines last.
