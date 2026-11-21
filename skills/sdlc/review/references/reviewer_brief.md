@@ -1,6 +1,6 @@
 # Reviewer brief
 
-Copy the brief below. Replace each `<...>` with a path, a number or a SHA. Add nothing else.
+Copy the brief below. Replace each `<...>` with a path, a number, a SHA, a list of axes or `none`. Add nothing else.
 
 ```
 Goal: review <a pull request | a spec | a design> with fresh eyes. You do not know how it was built. Judge it only from the files below.
