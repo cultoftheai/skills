@@ -1,4 +1,25 @@
 ## Run 2026-11-21
+Commit: 601a09f974c5eb8b37a1d0111211267ce094ba63
+Result: pass
+### Steps
+- `CLAUDECODE=1 sh .sdlc/scripts/next_step.sh 54 --after <skill> --result <pass|fail>` for setup, frame, slice, shape, build, prove, submit, review, respond, document, ship and retro -> each of the 24 runs exited 0 and printed two lines: a `Context:` line, then `Next:` as the last line. compact only for prove fail. keep for prove pass, document pass and fail, and frame fail. clear for all the others, submit fail (`Next: /sdlc:prove 54`), frame pass, ship and retro included. Each line names one advice and gives a reason (criteria 1, 2, 4, 5 and 6 pass).
+- The whole matrix of 24 runs ran twice -> identical output (criterion 3 pass).
+- `--after prove --result fail --keep "lint fails"` -> `Context: compact - the next step continues this work. Run /compact Keep issue #54, branch 54-context-advice, open items: lint fails`. With no `--keep` -> `Run /compact Keep issue #54, branch 54-context-advice`. With `-` as the task -> `Run /compact Keep branch 54-context-advice, open items: lint fails`, with no issue. Under dash, `--keep` "a", line break, "b" -> `open items: a b` on one line (criterion 7 pass).
+- `CLAUDECODE=1 sh .sdlc/scripts/next_step.sh 404 --after review` -> exit 1 and one line only: `Next: fix this error (gh: Could not resolve to an issue or pull request with the number of 404.), then run /sdlc:next 404`. A failed hand-off prints no `Context:` line.
+- `sh .sdlc/scripts/next_step.sh 54` with no `--after` -> only `Next: /sdlc:document 54`. skills/sdlc/next/SKILL.md step 1 keeps the `Next:` line, step 3 asks the subagent for the last `Context:` and `Next:` lines, and step 4 prints them as the last lines. When no skill ran, step 4 prints `Context: clear - the next step starts from the issue, the task folder or the PR. Run /clear before the next command.` in Claude Code (criterion 8 pass).
+- `env -u CLAUDECODE SDLC_HARNESS=codex sh ...` and `env -u CLAUDECODE CODEX_THREAD_ID=t1 sh ...` with `--after prove --result fail` -> only `Next: $build 54`, with no Context line (Codex is #55).
+- The script run in a new git repo with no settings: `5 --after prove --result fail` and `- --after build` -> `Context: clear - setup needs nothing from this session. Run /clear before the next command.` then `Next: /sdlc:setup`. With no `--after` -> only `Next: /sdlc:setup`. With `SDLC_HARNESS=codex` -> only `Next: $setup`.
+- `sed -n 14,18p .sdlc/scripts/next_step.sh` -> the usage comment wraps at 77 characters or less.
+- SPEC.md line 36 -> the test plan names the clear setup line without settings, as line 7 and the tests do.
+- `diff .sdlc/scripts/next_step.sh skills/sdlc/next/scripts/next_step.sh` -> no difference.
+- `sh skills/sdlc/next/tests/run.sh` and `SH=dash sh skills/sdlc/next/tests/run.sh` -> `37 tests, 0 failed` each.
+
+## Assumptions
+- TESTING.md is a TODO stub, so the run has no QA guide. The real surface is the installed script `.sdlc/scripts/next_step.sh` run as a skill runs it, plus the SKILL.md steps that tell the agent what to print.
+- `CLAUDECODE=1` stands for a Claude Code session, which is how the script detects one.
+- The commit under test is 601a09f. It adds only REVIEW.md on top of 0197d83, the last change to the skills and the script.
+
+## Run 2026-11-21
 Commit: 0b0cb9a4c6f9e760f50464e74f96fd712ce6a9fd
 Result: pass
 ### Steps
