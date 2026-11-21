@@ -9,21 +9,28 @@ Size: M (story). Confirmed: 2 modules (`skills/sdlc/review`, `skills/sdlc/respon
 - Thread to check: a thread from `.sdlc/scripts/review_threads.sh list <pr> --all`, resolved or not, that has a reply naming a commit SHA (the fix reply that `respond` step 7 writes), and whose first comment is not marked `nit`. A thread with no SHA reply is a decline, needs-you or follow-up thread, and is skipped.
 - Fix commits: every SHA named in those replies.
 - Verify results JSON: `{"threads": [{thread, result: fixed|not fixed|partly fixed, path, line, evidence}], "findings": [{severity, path, line, finding, evidence}]}`. `findings` holds only problems in lines the fix commits changed, or in lines that contradict them.
-- Reply in each checked thread: `<prefix> [verify] <result>: <path>:<line>`. If the thread already has a `[verify] not fixed` or `partly fixed` reply and the result is still not `fixed`, the reply ends with "Needs a person: still not fixed after two verify rounds."
+- Reply in each checked thread: `<prefix> [verify] <result>: <path>:<line>`. If the thread already has `review.max_rounds` minus 1 `[verify] not fixed` or `partly fixed` replies and the result is still not `fixed`, the reply ends with "Needs a person: still not fixed after <review.max_rounds> verify rounds."
+- Nit thread: a thread whose first comment marks its severity as `nit` (`nit:` or `[nit]`). `review` step 6 puts the severity after the axis in each finding it posts: `<prefix> [<axis>] <severity>: <finding>`.
+- `review.max_rounds` (new, optional, integer, minimum 1, default 2): the number of full review rounds on a PR. A full round is one `review` run at `high` or `ultra`; `ultra` counts once, `--verify` does not count. The same number limits the verify replies per thread above.
+- Review body: a full review starts with `<prefix>`. A `--verify` round always posts one review, with or without findings, that starts with `<prefix> [verify] <pass|fail>`.
 
 ## Seam
 - Step 3 collects `threads.json` from `list --all` and the fix SHAs instead of the issue. Step 4 starts 1 reviewer with `references/verify_brief.md`. Steps 5 and 6 check the citations, post the replies with `review_threads.sh reply`, and post the new findings as one review. Step 8: `pass` when every result is `fixed` and no blocking or should-fix finding is left. Nits are posted, but they do not fail the round.
 - The stop for a person reuses `respond` step 3: a thread with `rounds` of 2 or more is needs-you. After two fix replies and two verify replies, `respond` asks the person.
 - No thread to check: start no reviewer, report that there was nothing to verify, and hand off with `pass`.
+- Round limit, not a hard stop: before a full review of a PR, count the earlier full reviews from `gh pr view <pr> --json reviews` (body starts with `<prefix>`, not `<prefix> [verify]`). At `review.max_rounds` or more, say so and ask. When a `[verify] pass` review is newer than the latest full review, recommend to skip the review and hand off with `pass`. If not, recommend to run `--verify` instead. The other option is to run the full review anyway. With `--auto`, take the recommended option.
 
 ## Files
-- `skills/sdlc/review/SKILL.md`: the `--verify` flag, and a `--verify` branch in steps 3 to 6 and 8 that reads `references/verify_brief.md`.
+- `skills/sdlc/review/SKILL.md`: the `--verify` flag, a `--verify` branch in steps 3 to 6 and 8 that reads `references/verify_brief.md`, the round limit, and the severity in posted findings.
+- `skills/sdlc/setup/assets/settings.schema.json` and the installed copy `.sdlc/scripts/settings.schema.json`: `review.max_rounds`. `.sdlc/settings.json`: `review.max_rounds: 2`. `skills/sdlc/setup/references/walkthrough.md`: name it in the review group.
+- `skills/sdlc/setup/tests/test_validate_settings.sh`: one test that `review.max_rounds` below 1 is rejected.
 - `skills/sdlc/review/references/verify_brief.md` (new): the brief, made from the five rules in the story's `--verify` section and the JSON above.
 - `skills/sdlc/respond/scripts/review_threads.sh` and the installed copy `.sdlc/scripts/review_threads.sh`: the `--all` option and the `resolved` field.
 - `skills/sdlc/respond/tests/test_review_threads.sh`: one test for `--all` and `resolved`.
 
 ## Test plan
 - `lint_skill.py skills/sdlc/review` exits 0.
+- `sh skills/sdlc/setup/tests/run.sh` passes, with the new `review.max_rounds` test.
 - `sh skills/sdlc/respond/tests/run.sh` passes. With `--all`, the new test sees a resolved thread with `resolved: true`, and the existing test still shows that `list` without `--all` skips it.
 - Throwaway PR with 3 review threads: one fixed and resolved, one fixed and left open, one declined. Answer them as `respond` does, then run `review <pr> --verify`. Both fixed threads get `[verify] fixed` with a line, the declined one gets no reply, and the hand-off is `pass` (criteria 1, 3 and 4).
 - On the same PR: a fix commit that adds a new problem, plus a problem planted outside the fix lines. Only the first is reported (criterion 2).
@@ -32,3 +39,8 @@ Size: M (story). Confirmed: 2 modules (`skills/sdlc/review`, `skills/sdlc/respon
 
 ## Open questions
 - None. See the decisions under review.
+
+## Decisions during the build
+- Nits: the severity goes into each posted finding, so `--verify` can skip the nits that `review` posted (person, 2026-11-21).
+- `rounds` in `review_threads.sh` stays as it is. It also counts `[verify]` replies, so `respond` may stop for a person after one verify round. That is earlier than criterion 5 and safe. #64 covers `needs_reply` when the current user posted the last reply (person, 2026-11-21).
+- `review.max_rounds` and the round limit above (person, 2026-11-21). With `--auto`, the limit takes the recommended option (build assumption).
