@@ -24,7 +24,7 @@ Detect first. Each question then shows the detected value, or the schema default
 Ask in this order. Each group is one message.
 
 1. Repository: `default_branch`, `issue.tracker`, `issue.estimation`.
-   - Ask `issue.tracker` even when it was detected. Offer GitHub (marked as detected when it was), Jira and Linear, and let the person type another tracker. A typed tracker that the schema does not allow is a hard stop: name it and go to step 9. For Jira and Linear, say that the labels and scripts exist only for GitHub so far.
+   - Ask `issue.tracker` even when it was detected. Offer GitHub (marked as detected when it was), Jira and Linear, and let the person type another tracker. A typed tracker that the schema does not allow is a hard stop: name it and go to step 9. For Jira and Linear, say that the skills work through the connected Jira or Linear tool and create the labels when they first set them.
    - `issue.estimation`: `tshirt` estimates with the size labels XS to XL, `fibonacci` with story points, `none` not at all.
 2. Guides: `guides.development`, `guides.code_review`, `guides.qa`, `guides.labeling`. Tell the person that a skill with a `null` guide runs without one and says so.
 3. Tasks and specs: `task.path`, `task.keep` (keep task folders after merge), `spec.storage` (where the spec lives), `spec.review` (whether specs are reviewed), `templates.*` (the templates of issue bodies and task files, which step 8 copies in).
