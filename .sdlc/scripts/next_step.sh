@@ -13,7 +13,7 @@
 #   With "-", it names the next ready task.
 # - With --after in Claude Code, a Context: line comes before the Next: line.
 #   It advises to clear, compact or keep the session context, from the skill
-#   that ran and its result. A compact names the issue, the branch and the
+#   that ran and its result. Without settings it advises clear before setup. A compact names the issue, the branch and the
 #   open items that --keep gives.
 # - --auto adds --auto to the printed command.
 # - --harness picks the command form. Default: the SDLC_HARNESS environment
@@ -447,6 +447,10 @@ after_retro() {
 
 # Print the Context: line for the skill that just ran: clear, compact or keep the session context.
 context_line() {
+    if [ ! -f "$SETTINGS" ]; then
+        printf 'Context: clear - setup needs nothing from this session. Run /clear before the next command.\n'
+        return
+    fi
     case "$AFTER:$FAILED" in
         prove:1) printf 'Context: compact - the next step continues this work. Run /compact%s\n' "$(keep_list)" ;;
         prove: | submit:1 | document:* | frame:1) printf 'Context: keep - the next step follows on directly.\n' ;;
@@ -521,15 +525,15 @@ case "$HARNESS" in
     codex) PREFIX='$' ;;
     *) PREFIX='/sdlc:' ;;
 esac
+if [ -n "$AFTER" ] && [ "$HARNESS" = claude-code ]; then
+    context_line
+fi
 if [ ! -f "$SETTINGS" ]; then
     printf 'Next: %s\n' "$(render setup)"
     exit 0
 fi
 ERROR_FILE=$(mktemp)
 trap 'rm -f "$ERROR_FILE"' EXIT
-if [ -n "$AFTER" ] && [ "$HARNESS" = claude-code ]; then
-    context_line
-fi
 if step=$(decide); then
     printf 'Next: %s\n' "$(render "$step")"
     exit 0

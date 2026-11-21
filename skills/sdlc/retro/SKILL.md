@@ -50,7 +50,7 @@ flowchart TD
 
 ## Flow steps
 
-1. **Load settings** - If `.sdlc/settings.json` does not exist, stop and print `Next: /setup` as the last line. Read `task.path`, `retro.scope`, `templates.retro` and the `sizing` keys.
+1. **Load settings** - If `.sdlc/settings.json` does not exist, stop and print `Next: /setup` as the last line, with `Context: clear - setup needs nothing from this session. Run /clear before the next command.` just above it in Claude Code. Read `task.path`, `retro.scope`, `templates.retro` and the `sizing` keys.
 2. **Repo retro?** - If `--repo` is passed, go to step 3. If not, go to step 4.
 3. **Collect repo findings** - Read `references/repo_retro.md` and do what it says. Go to step 7.
 4. **Collect evidence** - Read `references/harness.md`. For each harness in it, run `sh .sdlc/scripts/transcript_extract.sh --harness <name> --worktree <path>`. `<path>` is the worktree of the task when `retro.scope` is `worktree`, and the repo root when it is `repo`. If the worktree is gone, ask the user for its path, or use the repo root with `--auto`. If every run exits non-zero, there is no chat data: tell the user and use only the review data. Read `<task.path>/<task>/REVIEW.md`. If the folder was removed, read the file from git history.

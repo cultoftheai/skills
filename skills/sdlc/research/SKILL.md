@@ -40,7 +40,7 @@ flowchart TD
 
 ## Flow steps
 
-1. **Check settings** - If `.sdlc/settings.json` does not exist, stop. Make `Next: /setup` the last line.
+1. **Check settings** - If `.sdlc/settings.json` does not exist, stop. Make `Next: /setup` the last line, with `Context: clear - setup needs nothing from this session. Run /clear before the next command.` just above it in Claude Code.
 2. **Check question** - If the input holds no question, stop and say that `research` needs one. If it holds more than one, stop and tell the caller to run `research` once for each question. Do not ask.
 3. **Start subagent** - Read `references/harness.md`. Start one subagent. Give it the path of this file, the question and today's date. Tell it to run steps 4 to 6 and to return only the entry. If you cannot start a subagent, run steps 4 to 6 yourself.
 4. **Pick engine** - Read `research.engine` from `.sdlc/settings.json`. If it names a tool that you have, use that tool. If it is null or the tool is not connected, use the built-in web search. After a fallback, write the reason in the entry.

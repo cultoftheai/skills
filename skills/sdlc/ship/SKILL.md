@@ -46,7 +46,7 @@ flowchart TD
 
 ## Flow steps
 
-1. **Settings exist?** - If `.sdlc/settings.json` exists, go to step 2. If not, stop and print `Next: /setup` as the last line.
+1. **Settings exist?** - If `.sdlc/settings.json` exists, go to step 2. If not, stop and print `Next: /setup` as the last line, with `Context: clear - setup needs nothing from this session. Run /clear before the next command.` just above it in Claude Code.
 2. **Run gates** - Get the PR with `gh pr view [pr] --json number,headRefName,closingIssuesReferences`. Fast-forward the PR branch to the PR head and do not push local commits. From the repository root, run `sh .sdlc/scripts/ship_gates.sh <pr>` and show its output.
 3. **Gates pass?** - If the exit code is 0, go to step 4. If not, name each failed gate and who can clear it, then go to step 8 with result `fail`.
 4. **Folder to remove?** - If `task.keep` is `false` and `<task.path>/<issue>/` exists, go to step 5. If not, go to step 6.

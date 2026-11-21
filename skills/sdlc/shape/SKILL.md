@@ -46,7 +46,7 @@ flowchart TD
 
 ## Flow steps
 
-1. **Load settings** - If `.sdlc/settings.json` or `.sdlc/scripts/` does not exist, stop and print `Next: /setup` as the last line. Read `issue.*`, `task.path`, `spec.*`, `sizing.*`, `templates.spec`, `templates.design` and the `guides.development` file. If the guide is `null`, say that you run without one. Read the reference for `issue.tracker`: `references/tracker_github.md`, `references/tracker_jira.md` or `references/tracker_linear.md`. If `--auto` is passed, read `references/auto_mode.md`.
+1. **Load settings** - If `.sdlc/settings.json` or `.sdlc/scripts/` does not exist, stop and print `Next: /setup` as the last line, with `Context: clear - setup needs nothing from this session. Run /clear before the next command.` just above it in Claude Code. Read `issue.*`, `task.path`, `spec.*`, `sizing.*`, `templates.spec`, `templates.design` and the `guides.development` file. If the guide is `null`, say that you run without one. Read the reference for `issue.tracker`: `references/tracker_github.md`, `references/tracker_jira.md` or `references/tracker_linear.md`. If `--auto` is passed, read `references/auto_mode.md`.
 2. **Read the issue** - Read the issue with its title, body, labels, parent and sub-issues, as the tracker reference says. Read the parent story and its design, if there is one.
 3. **Can shape?** - If the issue is not at the `ready` stage, or it is a story that is not L or already has tasks, go to step 10 and name the cause. If not, go to step 4.
 4. **Create the folder** - Read `references/task_folder.md` and create the branch and the folder.

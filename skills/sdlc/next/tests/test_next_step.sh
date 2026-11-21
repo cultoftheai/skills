@@ -297,10 +297,17 @@ test_context_line_comes_right_before_the_next_line() {
 Next: /sdlc:submit 5"
 }
 
-test_no_context_line_without_a_hand_off_settings_or_claude_code() {
+test_no_context_line_without_a_hand_off_or_claude_code() {
     issue 3 shaped,size:S
     assert_eq "$(context_line 3)" ""
     assert_eq "$(context_line 5 --after prove --harness codex)" ""
+}
+
+test_clear_before_setup_without_settings() {
     rm .sdlc/settings.json
-    assert_eq "$(context_line 5 --after prove)" ""
+    lines=$("$SH" "$NEXT_STEP" 5 --after prove 2> /dev/null)
+    assert_eq "$lines" "Context: clear - setup needs nothing from this session. Run /clear before the next command.
+Next: /sdlc:setup"
+    assert_eq "$(context_line 5)" ""
+    assert_eq "$(context_line 5 --after prove --harness codex)" ""
 }

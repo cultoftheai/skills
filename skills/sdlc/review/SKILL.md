@@ -44,7 +44,7 @@ flowchart TD
 
 ## Flow steps
 
-1. **Check settings** - If `.sdlc/settings.json` does not exist, say so, print `Next: /setup` as the last line and stop.
+1. **Check settings** - If `.sdlc/settings.json` does not exist, say so, print `Next: /setup` as the last line, with `Context: clear - setup needs nothing from this session. Run /clear before the next command.` just above it in Claude Code, and stop.
 2. **Resolve target** - If `gh pr view <target>` finds a PR, review its diff. If not, review the `DESIGN.md` or `SPEC.md` in `<task.path>/<issue>/`. When `spec.storage` is `issue_comment`, read the spec from the issue comment instead. For a path, the issue is the name of its folder.
 3. **Collect inputs** - Make a temporary folder outside the repository. Save the raw inputs there: the diff from `gh pr diff <pr>`, the body of the issue that the PR closes or that owns the spec, and the spec or design. For a PR, run `git fetch origin pull/<pr>/head` and note the head SHA. Take the guide path from `guides.code_review`. If it is null, the run has no guide. If the PR closes no issue, report the missing criteria as a blocking finding.
 4. **Brief reviewer** - Read `references/reviewer_brief.md`. Follow `orchestrator` to start one subagent with a fresh context and that brief.

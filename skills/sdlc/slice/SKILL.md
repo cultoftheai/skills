@@ -42,7 +42,7 @@ flowchart TD
 
 ## Flow steps
 
-1. **Load settings** - If `.sdlc/settings.json` or `.sdlc/scripts/` does not exist, stop and print `Next: /setup` as the last line. Read `issue.*`, `task.path`, `spec.storage`, `sizing.m_max_tasks`, `templates.task` and the `guides.labeling` file. If the guide is `null`, say that you run without one. Read the reference for `issue.tracker`: `references/tracker_github.md`, `references/tracker_jira.md` or `references/tracker_linear.md`. If `--auto` is passed, read `references/auto_mode.md`.
+1. **Load settings** - If `.sdlc/settings.json` or `.sdlc/scripts/` does not exist, stop and print `Next: /setup` as the last line, with `Context: clear - setup needs nothing from this session. Run /clear before the next command.` just above it in Claude Code. Read `issue.*`, `task.path`, `spec.storage`, `sizing.m_max_tasks`, `templates.task` and the `guides.labeling` file. If the guide is `null`, say that you run without one. Read the reference for `issue.tracker`: `references/tracker_github.md`, `references/tracker_jira.md` or `references/tracker_linear.md`. If `--auto` is passed, read `references/auto_mode.md`.
 2. **Read the story** - Read the story with its title, body, labels and comments, as the tracker reference says. Read the design if there is one: `<task.path>/<story>/DESIGN.md` in the working tree or on the story's branch (`git show <story>-<slug>:<path>`), or the design comment on the story.
 3. **Can slice?** - An L story needs the `shaped` stage and a design. Any other story needs the `ready` stage. If the story fails its check, go to step 8 and name the cause. If not, go to step 4.
 4. **Draft tasks** - Read `references/slicing.md` and draft the tasks with their blocking edges.

@@ -43,7 +43,7 @@ flowchart TD
 
 ## Flow steps
 
-1. **Settings exist?** - If `.sdlc/settings.json` exists, go to step 2. If not, stop and print `Next: /setup` as the last line.
+1. **Settings exist?** - If `.sdlc/settings.json` exists, go to step 2. If not, stop and print `Next: /setup` as the last line, with `Context: clear - setup needs nothing from this session. Run /clear before the next command.` just above it in Claude Code.
 2. **Load task** - Read `default_branch` and `task.path` from the settings. Get the PR with `gh pr view --json number,closingIssuesReferences`, then the size label with `gh issue view <task> --json labels`. Read the diff with `git diff origin/<default_branch>...HEAD`, without the task folder. Read `<task.path>/<task>/SPEC.md` and the newest run in `<task.path>/<task>/QA.md`.
 3. **Worth documenting?** - If the label is `size:XS`, or the diff changes nothing a reader would look up (an internal refactor, tests only, build files), note the reason and go to step 8. If not, go to step 4.
 4. **Compare with spec** - List each point where SPEC.md and the diff or QA.md disagree, for example a dropped option, a renamed setting or a changed default. The diff and QA.md win.
