@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use when a pull request, a spec or a design needs a review from a fresh context before a person approves it. Starts one reviewer subagent with no memory of the build, or three at the ultra level. It checks a diff against the acceptance criteria and the code review guide, and at ultra for files that contradict each other, or a spec or design against five questions, and reports findings by severity. Triggers - review this PR, review the diff, review the spec, check the design. Not for answering review comments on your own PR, which is what respond does.
+description: Use when a pull request, a spec or a design needs a review from a fresh context before a person approves it. Starts up to three reviewer subagents with no memory of the build, one for each axis at the ultra level. It checks a diff against the acceptance criteria and the code review guide, and at ultra for files that contradict each other, or a spec or design against five questions, and reports findings by severity. Triggers - review this PR, review the diff, review the spec, check the design. Not for answering review comments on your own PR, which is what respond does.
 argument-hint: <pr | issue | spec-or-design-path> [--level ultra|high] [--auto]
 ---
 
