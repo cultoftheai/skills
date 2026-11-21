@@ -40,7 +40,7 @@ Ask each key as one question with a list of options. List the options in this or
 Ask in this order. Each group is one message.
 
 1. Repository: `default_branch`, `issue.tracker`, `issue.estimation`.
-   - Unless step 3 kept `issue.tracker`, ask it even when it was detected. On a move, offer the tracker that the person named. Offer GitHub (marked as detected when it was), Jira and Linear, and let the person type another tracker. A typed tracker that the schema does not allow is a hard stop: name it and go to step 9. For Jira and Linear, say that the skills work through the connected Jira or Linear tool.
+   - Unless step 3 kept `issue.tracker`, ask it even when it was detected. On a move, the tracker that the person named is the first, recommended option. Offer GitHub, Jira and Linear, and let the person type another tracker. A typed tracker that the schema does not allow is a hard stop: name it and go to step 9. For Jira and Linear, say that the skills work through the connected Jira or Linear tool.
    - `issue.estimation`: `tshirt` estimates with the size labels XS to XL, `fibonacci` with story points, `none` not at all.
 2. Tracker: `issue.project`, `issue.stages`, `issue.size_field`, `issue.types`. Ask only the keys that step 3 did not keep. Read `references/trackers.md` for the tracker in `issue.tracker`. Detect those keys as it says, then ask. `issue.stages` is one bundle: a stage that maps to `null` keeps its label unless the person names a status. `issue.types` is one bundle.
 3. Guides: `guides.development`, `guides.code_review`, `guides.qa`, `guides.labeling`. Tell the person that a skill with a `null` guide runs without one and says so.
