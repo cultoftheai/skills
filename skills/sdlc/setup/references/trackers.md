@@ -1,6 +1,6 @@
 # Tracker mapping
 
-Fill `issue.project`, `issue.stages`, `issue.size_field` and `issue.types` for the tracker that group 1 chose, so that the skills leave each tracker in about the same state. Show the mapping, and ask about each stage that maps to `null`: keep the label, or name a status.
+Fill the keys of `issue.project`, `issue.stages`, `issue.size_field` and `issue.types` that step 3 did not keep, for the tracker in `issue.tracker`, so that the skills leave each tracker in about the same state. Show the mapping, and ask about each new stage that maps to `null`: keep the label, or name a status. On a run with a kept mapping, step 7 only creates the labels that are still missing. It never changes or recreates a label, a status or a type that exists.
 
 ## GitHub
 
