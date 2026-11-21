@@ -28,5 +28,5 @@ case "$1" in
     mul) mul "$2" "$3" ;;
     div) div "$2" "$3" ;;
     greet) greet "$2" ;;
-    *) usage; exit ;;
+    *) usage; exit 1 ;;
 esac
