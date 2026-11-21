@@ -4,7 +4,7 @@ Do each operation with the Linear tool that is connected in the session. If no L
 
 ## Read
 
-Get the issue with its title, description, labels and comments.
+Get the issue with its title, description, status, labels and comments.
 
 ## Comment
 
@@ -12,4 +12,4 @@ Add a comment to the issue. To update a comment, edit your own last comment.
 
 ## Stage
 
-Add the stage label and remove every other stage label: `ready`, `shaped`, `in-progress`, `review`, `done`, `blocked`. Create a label when it is missing.
+Set the workflow state that `issue.stages` gives for the stage. When it gives `null`, add the stage label instead, and create the label in the team when it is missing. Then remove every other stage label: `ready`, `shaped`, `in-progress`, `review`, `done`, `blocked`. The stage of an issue is the stage whose workflow state it has, or else its stage label.

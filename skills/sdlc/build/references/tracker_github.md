@@ -10,4 +10,4 @@
 
 ## Stage
 
-`sh .sdlc/scripts/stage.sh <issue> <stage>`
+Set it with `sh .sdlc/scripts/stage.sh <issue> <stage>`. The stage of an issue is its stage label: `ready`, `shaped`, `in-progress`, `review`, `done`, `blocked`.
