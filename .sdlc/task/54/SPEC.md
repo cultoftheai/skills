@@ -8,8 +8,8 @@ Size: S task of M story #45 confirmed. 1 module (sdlc), no risk path, about 180 
 
 | After, result | Advice | Reason in the line |
 |---|---|---|
-| prove fail, review fail with the next step "apply the review findings" | compact | the next step continues this work |
-| prove pass, document, frame fail | keep | the next step follows on directly |
+| prove fail, build fail with `-`, review fail with the next step "apply the review findings" | compact | the next step continues this work |
+| prove pass, document, frame fail, frame pass with `-` | keep | the next step follows on directly |
 | any other | clear | the next step starts from the issue, task folder or PR |
 
 - `Context: clear - <reason>. Run /clear before the next command.`
