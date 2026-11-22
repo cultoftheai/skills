@@ -10,5 +10,5 @@ if [ "$score" -ge 90 ]; then
 elif [ "$score" -ge 80 ]; then
     echo B
 else
-    echo D
+    echo C
 fi
