@@ -10,7 +10,7 @@ The folder is `<task.path>/<task>/`, or `$(git rev-parse --git-path sdlc/qa)` fo
 6. **Stop?** - If a row is `stop`, make no fix. Name the decision in the report, and hand off as a stop.
 7. **Fix** - Apply each `fix` row with an empty Fix column as one unit, as step 4 of the skill says, and write the commit SHA in the Fix column. After each unit, run the diff check of step 5 of the skill. If the diff passes `sizing.review_limit`, stop for a re-size as step 5 says, and hand off as step 8 of the skill says, not as a stop below.
 8. **Verify** - With at least one `fix` row, follow `orchestrator` to start one fresh subagent that runs `review <ref> --local --verify`. Write each result in the Verify column, add each new finding as a new row with Axis `verify` and its recommendation from step 3, and write the head SHA after `Verified:`. For a task, commit `PR.md` again.
-9. **Result** - If a `fix` row is not `fixed`, or the verify reports a new blocking or should-fix finding, hand off as a stop and name them in the report. If not, the run passes.
+9. **Result** - If a `fix` row is not `fixed`, or a row that the verify added is blocking, should-fix or `stop`, hand off as a stop and name them in the report. If not, set Status to `passed`, commit `PR.md` for a task, and the run passes.
 
 A stop sets Status to `stopped`, commits `PR.md` for a task, and hands off with `sh .sdlc/scripts/next_step.sh <ref> --after review --result fail`. Run one review and one verify, no more.
 
