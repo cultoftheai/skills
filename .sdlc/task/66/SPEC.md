@@ -10,8 +10,10 @@ Size: M (story). Confirmed: 2 modules (`skills/sdlc/review`, `skills/sdlc/respon
 - Fix commits: the SHAs named in the replies after the newest `[verify]` reply of each thread to check. A thread with no `[verify]` reply gives every SHA in its replies. A thread verified before with no newer fix reply is still checked, but adds no fix commit.
 - Open threads: the threads from the same list with `resolved` false. The reviewer does not report a problem again that an open thread already raises.
 - Verify results JSON: `{"threads": [{thread, result: fixed|not fixed|partly fixed, path, line, evidence}], "findings": [{severity, path, line, finding, evidence}]}`. `findings` holds only problems in lines the fix commits changed, or in lines that contradict them.
-- Reply in each checked thread: `<prefix> [verify] <result>: <path>:<line>`.- Nit thread: a thread whose first comment marks its severity as `nit` (`nit:` or `[nit]`). `review` step 6 puts the severity after the axis in each finding it posts: `<prefix> [<axis>] <severity>: <finding>`.
-- `review.max_rounds` (new, optional, integer, minimum 1, default 2): the number of full review rounds on a PR. A full round is one `review` run at `high` or `ultra`; `ultra` counts once, `--verify` does not count.- Review body: a full review starts with `<prefix>`. A `--verify` round always posts one review, with or without findings, that starts with `<prefix> [verify] <pass|fail>`.
+- Reply in each checked thread: `<prefix> [verify] <result>: <path>:<line>`.
+- Nit thread: a thread whose first comment marks its severity as `nit` (`nit:` or `[nit]`). `review` step 6 puts the severity after the axis in each finding it posts: `<prefix> [<axis>] <severity>: <finding>`.
+- `review.max_rounds` (new, optional, integer, minimum 1, default 2): the number of full review rounds on a PR. A full round is one `review` run at `high` or `ultra`; `ultra` counts once, `--verify` does not count.
+- Review body: a full review starts with `<prefix>`. A `--verify` round always posts one review, with or without findings, that starts with `<prefix> [verify] <pass|fail>`.
 
 ## Seam
 - Step 3 collects `threads.json` from `list --all` and the fix SHAs instead of the issue. Step 4 starts 1 reviewer with `references/verify_brief.md`. Steps 5 and 6 check the citations, post the replies with `review_threads.sh reply`, and post the new findings as one review. Step 8: `pass` when every result is `fixed` and no blocking or should-fix finding is left. Nits are posted, but they do not fail the round.
