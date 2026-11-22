@@ -21,7 +21,7 @@ Ask interactively if any **Must** arg is missing.
 - **--level** [Optional] - `ultra` or `high`. Sets how many reviewers read a PR diff and which axes each one checks. If absent, the level is `high`. On a spec or design, it is ignored. With `--local`, the level is always `ultra`.
 - **--local** [Optional] - Reviews the branch diff against the default branch, before a PR exists. Posts nothing and hands off to nobody: the caller takes the findings. If absent, the target is a PR, a spec or a design.
 - **--verify** [Optional] - A PR, or the branch with `--local`. Checks only that the findings of earlier rounds were fixed and that the fixes broke nothing. `--level` is ignored with it. If absent, the run is a full review.
-- **--auto** [Optional] - Never ask. At the round limit, take the recommended option. With no target, review the PR of the current branch, and write that assumption under `## Assumptions` in the review body. If absent, ask for a missing target.
+- **--auto** [Optional] - Never ask. At the round limit, take the recommended option. With no target and no `--local`, review the PR of the current branch, and write that assumption under `## Assumptions` in the review body. With `--local`, the target is required. If absent, ask for a missing target.
 
 ## Flow Graph
 
