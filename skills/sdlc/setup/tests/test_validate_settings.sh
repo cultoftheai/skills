@@ -74,6 +74,11 @@ test_below_minimum_is_rejected() {
     assert_eq "$(errors_for '.sizing.m_max_tasks = 1')" "sizing.m_max_tasks: must be 2 or more, got 1"
 }
 
+test_max_rounds_below_1_is_rejected() {
+    assert_eq "$(errors_for '.review.max_rounds = 2')" valid
+    assert_eq "$(errors_for '.review.max_rounds = 0')" "review.max_rounds: must be 1 or more, got 0"
+}
+
 test_empty_prefix_is_rejected() {
     assert_eq "$(errors_for '.review.prefix = ""')" "review.prefix: must not be empty"
 }

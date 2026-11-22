@@ -45,7 +45,8 @@
   },
   "review": {
     "resolve": "reviewer",
-    "prefix": ":robot:"
+    "prefix": ":robot:",
+    "max_rounds": 2
   },
   "retro": {
     "scope": "worktree"

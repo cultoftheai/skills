@@ -1,13 +1,13 @@
 #!/bin/sh
 # List, reply to and resolve the review threads of a pull request through gh api graphql.
 #
-# Usage: review_threads.sh list <pr>
+# Usage: review_threads.sh list <pr> [--all]
 #        review_threads.sh reply <thread-id> <body-file>
 #        review_threads.sh resolve <thread-id>
 #
-# list prints a JSON array of the unresolved threads. Each thread has: id, path,
-# line, outdated, can_resolve, needs_reply, rounds, comments (author, bot, body,
-# url, created_at). needs_reply is true when the last comment is not from the
+# list prints a JSON array of the unresolved threads, or of all threads with --all.
+# Each thread has: id, path, line, outdated, resolved, can_resolve, needs_reply,
+# rounds, comments (author, bot, body, url, created_at). needs_reply is true when the last comment is not from the
 # current gh user. rounds counts the replies from the current gh user that start
 # with review.prefix.
 # reply posts the file as a reply and prints the reply URL. The body must start
@@ -56,7 +56,7 @@ mutation($thread: ID!) {
 SUMMARIZE='
   (last | .data.viewer.login) as $viewer
   | [.[].data.repository.pullRequest.reviewThreads.nodes[]
-    | select(.isResolved | not)
+    | select($all or (.isResolved | not))
     | [.comments.nodes[] | {
         author: (.author.login // "ghost"),
         bot: (.author.__typename == "Bot"),
@@ -69,6 +69,7 @@ SUMMARIZE='
         path,
         line,
         outdated: .isOutdated,
+        resolved: .isResolved,
         can_resolve: .viewerCanResolve,
         needs_reply: (($comments | length) > 0 and $comments[-1].author != $viewer),
         rounds: ([$comments[] | select(.author == $viewer and (.body | startswith($prefix)))] | length),
@@ -114,10 +115,10 @@ fetch_pages() {
     done
 }
 
-# Print the unresolved threads of the pull request as a JSON array.
+# Print the unresolved threads of the pull request as a JSON array, or all threads when the third argument is true.
 list_threads() {
     pages=$(fetch_pages "$1") || exit 1
-    printf '%s\n' "$pages" | jq -s --arg prefix "$2" "$SUMMARIZE"
+    printf '%s\n' "$pages" | jq -s --arg prefix "$2" --argjson all "$3" "$SUMMARIZE"
 }
 
 # Post the body file as a reply to the thread when it starts with the prefix, and print the reply URL.
@@ -144,11 +145,16 @@ resolve() {
 
 prefix=$(setting review.prefix ':robot:') || fail 1 "cannot read $SETTINGS"
 case "${1:-}:$#" in
-    list:2)
+    list:2 | list:3)
         case "$2" in
             '' | *[!0-9]*) usage; exit 2 ;;
         esac
-        list_threads "$2" "$prefix"
+        case "${3:-}" in
+            '') all=false ;;
+            --all) all=true ;;
+            *) usage; exit 2 ;;
+        esac
+        list_threads "$2" "$prefix" "$all"
         ;;
     reply:3)
         reply "$2" "$3" "$prefix"

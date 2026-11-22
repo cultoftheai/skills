@@ -32,11 +32,17 @@ test_list_skips_resolved_threads_and_follows_pages() {
     assert_contains "$(gh_call 2)" "-f cursor=c1"
 }
 
+test_list_all_includes_resolved_threads() {
+    fake_gh "api graphql" 0 "$(page "$(thread T1 "$(comment rev 'fix this')"), $(thread T2 "$(comment rev x)" true)")"
+    output=$("$SH" "$SCRIPTS/review_threads.sh" list 7 --all) || exit 1
+    assert_eq "$(printf '%s\n' "$output" | jq -c '[.[] | [.id, .resolved]]')" '[["T1",false],["T2",true]]'
+}
+
 test_list_prints_the_thread_fields() {
     fake_gh "api graphql" 0 "$(page "$(thread T1 "$(comment rev fix)")")"
     output=$("$SH" "$SCRIPTS/review_threads.sh" list 7) || exit 1
     assert_eq "$(printf '%s\n' "$output" | jq -c '.[0] | del(.comments)')" \
-        '{"id":"T1","path":"src/app.sh","line":10,"outdated":false,"can_resolve":true,"needs_reply":true,"rounds":0}'
+        '{"id":"T1","path":"src/app.sh","line":10,"outdated":false,"resolved":false,"can_resolve":true,"needs_reply":true,"rounds":0}'
     assert_eq "$(printf '%s\n' "$output" | jq -c '.[0].comments[0]')" \
         '{"author":"rev","bot":false,"body":"fix","url":"https://github.com/o/r/pull/1#discussion_r1","created_at":"2026-11-20T10:00:00Z"}'
 }
