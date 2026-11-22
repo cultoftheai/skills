@@ -6,8 +6,9 @@ count=$2
 
 if [ -z "$name" ]; then
     echo "Hello, stranger"
+else
+    echo "Hello, $name"
 fi
-echo "Hello, $name"
 
 banner() {
     echo "=== $1 ==="
