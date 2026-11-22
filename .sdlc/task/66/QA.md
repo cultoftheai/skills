@@ -1,5 +1,18 @@
 # QA
 
+## Run 2026-11-22T11:02:17Z
+Commit: 7b70253ade62c8e2e85f517b7062beb23735370d
+Result: pass
+### Steps
+- A fresh clone of `main` only, without the PR commits -> `git rev-list 0d5441e..7b70253` (the latest full review commit to the PR head) exited 128 with "Invalid revision range".
+- Step 2 as written: `git fetch origin pull/76/head`, then the same `git rev-list` -> exit 0. 2 commits: ee8194d and 7b70253.
+- Round limit on PR #76 -> 3 full reviews, the latest at 0d5441e. Of the 2 commits after it, 7b70253 changes only `.sdlc/task/66/REVIEW.md` and is left out. ee8194d is named in the fix reply. Recommendation: "--verify".
+- `lint_skill.py skills/sdlc/review` -> PASS (mermaid not checked, mmdc missing).
+
+## Assumptions
+- No QA guide. I followed step 2 of `skills/sdlc/review/SKILL.md` at the commit under test.
+- Commit ee8194d only adds the fetch to step 2. The rest holds from the runs of 2026-11-22T10:57, 10:45 and 10:36.
+
 ## Run 2026-11-22T10:56:58Z
 Commit: 0744125c5e83c4a7385cfa5141a9def8dac5ef89
 Result: pass
