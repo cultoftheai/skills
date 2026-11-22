@@ -1,8 +1,7 @@
 #!/bin/sh
 # QA fixture for #66. Do not merge.
 
-name=$1
-count=$2
+name=$2
 
 if [ -z "$name" ]; then
     echo "Hello, stranger"
