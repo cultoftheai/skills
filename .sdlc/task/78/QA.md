@@ -1,5 +1,16 @@
 # QA
 
+## Run 2026-11-22T19:08:32Z
+Commit: f934ac61d196a1eebd2af42a2b117dc3546c57fb
+Result: pass
+### Steps
+- Review round 1 fixes: bdf820d and a59e1f9 (step 4 hand-off), 4850a86 (`--auto` target), 47c656c (step 6 replies), b1cf0df (Location split). Diff against 3e24dcd: 1 file, +4/-4 lines.
+- Fixture: local branch `qa-78b` from the commit under test, with `.sdlc/task/78/PR.md` holding only one `skip` row. `review 78 --local --verify` in a fresh subagent from `skills/sdlc/review/SKILL.md` on disk -> `threads.json` was `[]`, no reviewer started, the report said "Nothing to verify". No `next_step.sh` call and no `Next:` line. No GitHub write. Branch deleted afterwards.
+- `lint_skill.py skills/sdlc/review` -> PASS (mermaid not checked, mmdc missing).
+
+## Assumptions
+- The fixes change only wording in `--local` branches of steps 3, 4 and 6 and in the `--auto` flag. Criteria 1 to 4 hold from the run of 2026-11-22T18:49:33Z, whose runs did not reach those sentences.
+
 ## Run 2026-11-22T18:49:30Z
 Commit: 067113437bd50409fd865cdb7d948743e534d396
 Result: pass
