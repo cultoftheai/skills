@@ -1,5 +1,20 @@
 # QA
 
+## Run 2026-11-22T20:39:51Z
+Commit: 0bf701e1a41d2b2dda5bd95a9f7af2563eba3a80
+Result: pass
+### Steps
+- Fixture: a local bare repository as `origin` with `main` at the commit under test, and four clones of it. In each, a fresh subagent ran `build "<XS edit>" --auto` from `skills/sdlc/build/SKILL.md` in the clone. No push, no gh write.
+- Clone x3, edit "add a comment above run_test that says what it prints when a test fails", with a planted wrong comment ("one line for each passed test") -> build committed the edit (ab4905b), step 7 started `review - --local`: guide and consistency reviewers, no criteria reviewer. 1 should-fix finding on the wrong comment, recommendation `fix`, taken under `--auto`. Fix committed as its own unit (128ac47), tests 32 passed. `review - --local --verify` -> row 1 `fixed`, 2 new nits added as rows with Axis `verify` and `skip`. PR.md at `.git/sdlc/qa/PR.md`, not tracked by git. Hand-off: "Next: /sdlc:prove --auto" (criteria 1, 2, 4, 6, 7, 9).
+- Clone x4, same edit and wrong comment, plus a planted bad fix ("passed" changed to "skipped") -> fix a2a0a1c, verify row 1 `not fixed`, nit row `skip`. Hand-off: "Next: settle the findings left in PR.md in the XS folder (git rev-parse --git-path sdlc/qa), then run /sdlc:build "<the edit in words>" --auto" (criteria 6, 9).
+- Clones x1 and x2, an edit whose exact wording is false ("all in one shared temp directory") -> 2 should-fix findings recommended `stop`, because a fix would override the wording the edit asked for. No fix, no verify. PR.md in `.git/sdlc/qa`, not tracked. Same settle hand-off (criterion 5 under `--auto`, criterion 7).
+- `sh skills/sdlc/next/tests/run.sh` -> 32 tests, 0 failed. `lint_skill.py skills/sdlc/build` -> PASS (mermaid not checked, mmdc missing).
+
+## Assumptions
+- No QA guide. A skill's real surface is a run of it, with the person's answers and the planted faults given in the brief.
+- Criteria 3 and 8 for a task (one table with recommendations without `--auto`; PR.md committed alone in the task folder) hold from the run of 2026-11-22T20:19Z on 134e113. Since then, `local_review.md` changed the recommendation rule, the fix loop and a new first step for a settled PR.md, not the table or the record.
+- The runs reported small gaps that break no criterion: the reviewer brief does not name the repository path, the stop hand-off in `local_review.md` does not say to add `--auto` (build step 8 does), and `build` does not name the branch for XS work.
+
 ## Run 2026-11-22T20:19:03Z
 Commit: 134e1130b3303a48f112d29fd46ac946c781d10e
 Result: fail
