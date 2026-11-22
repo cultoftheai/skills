@@ -54,7 +54,7 @@ flowchart TD
 5. **Within the spec?** - Run `git diff --shortstat origin/<default_branch>...HEAD -- . ':!<task.path>'`. If the inserted plus deleted lines pass `sizing.review_limit`, or the next unit needs a decision that the spec does not cover, stop for a re-size: write the signal in a comment on the issue and go to step 8. If not, go to step 6.
 6. **Units left?** - If the test plan has an item that is not built, go to step 4. If not, go to step 7.
 7. **Local review** - Read `references/local_review.md` and do what it says: review the branch in a fresh subagent, apply the fixes that are chosen and verify them. Go to step 8.
-8. **Report** - Give the report from the Output section. Then run `sh .sdlc/scripts/next_step.sh <ref> --after build`, with `--auto` when it was passed, and print its output as the last line. `<ref>` is the task, or `-` for XS. Add `--result fail` after a stop in step 2 or 5. After a stop in step 7, run `sh .sdlc/scripts/next_step.sh <ref> --after review --result fail` instead.
+8. **Report** - Give the report from the Output section. Then run `sh .sdlc/scripts/next_step.sh <ref> --after build`, with `--auto` when it was passed, and print its output as the last line. `<ref>` is the task, or `-` for XS. Add `--result fail` after a stop in step 2 or 5, or a re-size in step 7. After any other stop in step 7, run `sh .sdlc/scripts/next_step.sh <ref> --after review --result fail` instead, with `--auto` when it was passed.
 
 ## Rules
 
