@@ -2,7 +2,7 @@
 
 The folder is `<task.path>/<task>/`, or `$(git rev-parse --git-path sdlc/qa)` for XS. `<ref>` is the task, or `-` for XS.
 
-1. **Settled?** - Reuse `PR.md` only when its Status is `stopped`, its Reviewed commit is an ancestor of HEAD (`git merge-base --is-ancestor`), and no row is `stop`: a person settled it after a stop. Then skip the review and go to step 7 with its rows. If not, go to step 2.
+1. **Settled?** - Reuse `PR.md` only when its Status is `stopped`, its Reviewed commit is an ancestor of HEAD (`git merge-base --is-ancestor`), and no row has the Decision `stop`: a person settled it after a stop. Then skip the review and go to step 7 with its rows. If not, go to step 2.
 2. **Review** - Follow `orchestrator` to start one fresh subagent that runs `review <ref> --local`. Ask it for its report and the paths of the findings files. Read each findings file.
 3. **Recommend** - Give each finding one recommendation: `fix` for blocking and should-fix, `skip` for nit, `stop` when the fix needs a decision that the spec does not cover. Change a recommendation only to `stop`, and write the reason in the Finding cell.
 4. **Decide** - Without `--auto`, show every finding in one table: number, severity, location, finding and recommendation. Ask the person to choose `fix` or `skip` for each row, or to take the recommendations. A `stop` row stays `stop`. With `--auto`, take the recommendations.
