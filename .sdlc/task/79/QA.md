@@ -1,5 +1,18 @@
 # QA
 
+## Run 2026-11-22T20:46:56Z
+Commit: b46ef6660031f2316ae2cf613e5961d88668417b
+Result: pass
+### Steps
+- Review round 1 fixes: 529e589 (settled check and Status), 64eb8e8 (stop on any new stop row), 1dfa1a5 (one hand-off per stop, with `--auto`), 984ae17 (format note), 0663021 (spec), d465057 (Decision column in the settled check).
+- Fixture: a local bare repository as `origin` with `main` at 0663021, one clone, a fixture commit with a grade bug, and a hand-written `.sdlc/task/79/PR.md` with Status `stopped`: row 1 `fix` with no Fix SHA, row 2 recommended `stop` and settled `skip`. `build 79 --auto` in a fresh subagent, gh reads through GH_REPO, no writes.
+- Result: step 1 reused PR.md (Status `stopped`, Reviewed commit an ancestor of HEAD, no Decision `stop`). No new review. Row 1 fixed with a test first (c3af406), `review 79 --local --verify` -> row 1 `fixed`, 0 new findings. PR.md Status `passed`, committed. Hand-off: "Next: /sdlc:prove 79 --auto".
+- `sh skills/sdlc/next/tests/run.sh` -> 32 tests, 0 failed. `lint_skill.py skills/sdlc/build` -> PASS (mermaid not checked, mmdc missing).
+
+## Assumptions
+- The settled check was run on 0663021; d465057 only names the Decision column, which the run already read that way.
+- Criteria 1 to 9 hold from the runs of 2026-11-22T20:39Z (XS) and 2026-11-22T20:19Z (task table and record). The fixes change the re-run, the Status line and the hand-off wording, not those paths.
+
 ## Run 2026-11-22T20:39:51Z
 Commit: 0bf701e1a41d2b2dda5bd95a9f7af2563eba3a80
 Result: pass
