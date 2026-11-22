@@ -14,4 +14,4 @@ banner() {
 }
 
 banner "done" > /dev/null
-echo "Bye, $nmae"
+echo "Goodbye, $nmae"
