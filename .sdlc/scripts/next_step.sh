@@ -366,10 +366,16 @@ after_submit() {
     fi
 }
 
-# review: findings go to respond, a clean PR to document; a spec with findings goes back to its author.
+# review: findings go to respond, a clean PR to document; a spec with findings goes back to its author; a local review goes to prove or back to build.
 after_review() {
+    if [ -z "$REF" ]; then
+        after_local_review "$EDIT"
+        return
+    fi
     reviewed=$(item "$REF") || exit 1
-    if [ "$(get "$reviewed" .__typename)" = Issue ]; then
+    if [ "$(get "$reviewed" stage)" = in-progress ]; then
+        after_local_review "$REF"
+    elif [ "$(get "$reviewed" .__typename)" = Issue ]; then
         step=$(route_issue "$reviewed") || exit 1
         if [ -n "$FAILED" ]; then
             wait_then "apply the review findings to the spec or design of #$REF" "$step"
@@ -380,6 +386,15 @@ after_review() {
         skill respond "$REF"
     else
         document_or_ship "$reviewed"
+    fi
+}
+
+# Print the step after a local review that build stopped on or passed: prove, or build again once its findings are settled.
+after_local_review() {
+    if [ -n "$FAILED" ]; then
+        wait_then "settle the findings left in PR.md of the local review" "build $1"
+    else
+        skill prove ${REF:+"$REF"}
     fi
 }
 

@@ -181,6 +181,16 @@ test_after_review_of_a_spec() {
         "Next: apply the review findings to the spec or design of #5, then run /sdlc:build 5"
 }
 
+test_after_review_of_a_local_review() {
+    issue 21 in-progress '{parent: 20}'
+    assert_eq "$(next_line 21 --after review --result pass)" "Next: /sdlc:prove 21"
+    assert_eq "$(next_line 21 --after review --result fail)" \
+        "Next: settle the findings left in PR.md of the local review, then run /sdlc:build 21"
+    assert_eq "$(next_line - --after review --result pass)" "Next: /sdlc:prove"
+    assert_eq "$(next_line - --after review --result fail)" \
+        'Next: settle the findings left in PR.md of the local review, then run /sdlc:build "<the edit in words>"'
+}
+
 test_after_respond() {
     pr 9 5 '{threads: [thread(false; "alice")]}'
     pr 10 6 '{requests: ["alice"], threads: [thread(false; "dev")]}'
