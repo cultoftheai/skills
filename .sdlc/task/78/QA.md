@@ -1,5 +1,16 @@
 # QA
 
+## Run 2026-11-22T19:20:04Z
+Commit: 907ebafe5edd11f1cd7a6b7c1d13484cd748233b
+Result: pass
+### Steps
+- Review round 2 fix 7561f06: `--auto` now says that `--local --auto` with no target stops and says that `--local` needs a target.
+- `review --local --auto` with no target, in a fresh subagent from `skills/sdlc/review/SKILL.md` on disk -> it stopped at step 2 with "`--local` needs a target: give the task number, or `-` for XS work." It asked nothing, started no reviewer, wrote nothing to GitHub and printed no `Next:` line.
+- `lint_skill.py skills/sdlc/review` -> PASS (mermaid not checked, mmdc missing).
+
+## Assumptions
+- 7561f06 changes one sentence of the `--auto` flag. Criteria 1 to 4 hold from the run of 2026-11-22T18:49:33Z, and the round 1 fixes from the run before this one.
+
 ## Run 2026-11-22T19:08:32Z
 Commit: f934ac61d196a1eebd2af42a2b117dc3546c57fb
 Result: pass
