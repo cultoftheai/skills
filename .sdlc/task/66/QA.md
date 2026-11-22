@@ -1,5 +1,17 @@
 # QA
 
+## Run 2026-11-22T10:56:58Z
+Commit: 0744125c5e83c4a7385cfa5141a9def8dac5ef89
+Result: pass
+### Steps
+- Round limit on closed fixture PR #77 (real threads and reviews, read only) -> 2 full reviews, the latest at 123a96f. `git rev-list 123a96f..d22c6f2` gave 4 commits, all outside `.sdlc/task`. c37b9aa, 6693186 and f1819d2 are named in fix replies; d22c6f2 is not. The `[verify] pass` is on f1819d2, not the head. Recommendation: "full review".
+- Round limit on PR #76 itself after fix 1848cae and its reply -> 2 full reviews, the latest at 38760f3. `git rev-list 38760f3..0744125` gave 2 commits: 1848cae, named in the fix reply, and 0744125, which changes only `.sdlc/task/66/REVIEW.md` and is left out. Recommendation: "--verify".
+- `lint_skill.py skills/sdlc/review` -> PASS (mermaid not checked, mmdc missing).
+
+## Assumptions
+- No QA guide. I followed step 2 of `skills/sdlc/review/SKILL.md` at the commit under test, with `gh pr view <pr> --json headRefOid,reviews`, `git rev-list` and `git diff-tree --name-only`.
+- Commit 1848cae changes only the round-limit recommendation in step 2. The rest of `--verify` holds from the run of 2026-11-22T10:45 and the run of 2026-11-22T10:36.
+
 ## Run 2026-11-22T10:45:22Z
 Commit: 802d96829e9f0a4ccfd45b8bd3fc956c73d456b1
 Result: pass
