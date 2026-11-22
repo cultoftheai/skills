@@ -27,4 +27,4 @@ Reviewed: <short sha>. Verified: <short sha or "no">. Status: <open, stopped, re
 | 1 | <axis> | <severity> | <path:line> | <the finding in your own words> | <fix, skip or stop> | <fix, skip or stop> | <short sha> | <fixed, not fixed or partly fixed> |
 ```
 
-Leave Fix and Verify empty for a row that is not fixed.
+Leave Fix empty for a row that is not fixed yet, and Verify empty for a row with no Fix.
