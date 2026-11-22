@@ -185,10 +185,10 @@ test_after_review_of_a_local_review() {
     issue 21 in-progress '{parent: 20}'
     assert_eq "$(next_line 21 --after review --result pass)" "Next: /sdlc:prove 21"
     assert_eq "$(next_line 21 --after review --result fail)" \
-        "Next: settle the findings left in PR.md of the local review, then run /sdlc:build 21"
+        "Next: settle the findings left in PR.md in the folder of #21, then run /sdlc:build 21"
     assert_eq "$(next_line - --after review --result pass)" "Next: /sdlc:prove"
     assert_eq "$(next_line - --after review --result fail)" \
-        'Next: settle the findings left in PR.md of the local review, then run /sdlc:build "<the edit in words>"'
+        'Next: settle the findings left in PR.md in the XS folder (git rev-parse --git-path sdlc/qa), then run /sdlc:build "<the edit in words>"'
 }
 
 test_after_respond() {

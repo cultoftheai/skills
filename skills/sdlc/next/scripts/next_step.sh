@@ -369,12 +369,12 @@ after_submit() {
 # review: findings go to respond, a clean PR to document; a spec with findings goes back to its author; a local review goes to prove or back to build.
 after_review() {
     if [ -z "$REF" ]; then
-        after_local_review "$EDIT"
+        after_local_review "$EDIT" "the XS folder (git rev-parse --git-path sdlc/qa)"
         return
     fi
     reviewed=$(item "$REF") || exit 1
     if [ "$(get "$reviewed" stage)" = in-progress ]; then
-        after_local_review "$REF"
+        after_local_review "$REF" "the folder of #$REF"
     elif [ "$(get "$reviewed" .__typename)" = Issue ]; then
         step=$(route_issue "$reviewed") || exit 1
         if [ -n "$FAILED" ]; then
@@ -389,10 +389,10 @@ after_review() {
     fi
 }
 
-# Print the step after a local review that build stopped on or passed: prove, or build again once its findings are settled.
+# Print the step after a local review that build stopped on or passed: prove, or build again once the findings in the folder are settled.
 after_local_review() {
     if [ -n "$FAILED" ]; then
-        wait_then "settle the findings left in PR.md of the local review" "build $1"
+        wait_then "settle the findings left in PR.md in $2" "build $1"
     else
         skill prove ${REF:+"$REF"}
     fi
