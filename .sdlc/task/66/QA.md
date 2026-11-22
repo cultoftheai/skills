@@ -1,5 +1,31 @@
 # QA
 
+## Run 2026-11-22T10:36:04Z
+Commit: e3db30bfe617b513e6c9abf9ea70afa9a29421c8
+Result: pass
+### Steps
+- Fixture: draft PR #74 (`qa-fixture/greet.sh`, head a294a73) against `main`. It closes no issue. I posted 2 full reviews as `review` step 6 writes them: one with 5 inline findings (two greetings, unused `count`, `banner` output thrown away, a `nit:` for `printf`, and a translation question), one body-only. A planted bug outside every fix: line 17, `$nmae`.
+- Answered as `respond` does: 2e23a13 (one greeting), f84f4f9 (removes `count`, and also changes `name=$1` to `name=$2`, a regression), 195e7ed (the nit). Replies "Fixed in <sha>" on those 3 threads. A decline with no SHA on the `banner` thread, and a needs-you reply with no SHA on the translation thread. I resolved the greeting thread.
+- `review 74 --verify`, round 1 -> step 3: `review_threads.sh list 74 --all` returned 5 threads, with the greeting thread `resolved: true`. It kept 2 threads (greeting, count) and skipped the declined, needs-you and nit threads. Fix commits: 2e23a13 f84f4f9 (195e7ed left out, because its thread is a nit). 1 reviewer started with `verify_brief.md`, filled in. Results: fixed :8, fixed :4. Finding: blocking :4, the name is read from `$2`. All cited lines exist at the head. Replies `:robot: [verify] fixed: qa-fixture/greet.sh:8` and `...:4`. Review pullrequestreview-6011765096 with the body `:robot: [verify] fail`. Hand-off: "Next: /sdlc:respond 74".
+- Criterion 1 -> the resolved thread and the open thread both got a result with a cited line, in every round.
+- Criterion 2 -> the regression in f84f4f9 was reported as blocking. The planted `$nmae` on line 17 was not reported in round 1, because no fix commit touched it. The reviewer's reply named it as out of scope.
+- Criterion 3 -> the declined, needs-you and nit threads were skipped in all 3 rounds. The brief names no criteria and no guide.
+- Criterion 6 -> I created throwaway issue #75 and set the PR body to "Closes #75". `closingIssuesReferences` was [75]. Step 3 run again gave the same kept threads, fix SHAs, head and brief. Body restored, #75 closed as not planned.
+- Round limit after round 1, `review 74` without `--verify` -> 2 full reviews counted (the `[verify]` review and the empty reply reviews not counted). 2 >= `review.max_rounds` 2, so the limit is hit. No `[verify] pass` is newer than the latest full review, so the recommendation is "run with --verify".
+- Round 2: a person-style comment without the prefix opened a thread on the `$nmae` typo. Fix a47895f set `name=$1` and also changed "Goodbye" to "Bye" on line 17, without touching the typo -> step 3 fix commits: only a47895f. The 2 threads verified in round 1 had no newer fix reply, so they added no SHA. Results: 3 of 3 fixed. Finding: should-fix :17, the wording change that no thread asked for. The `$nmae` typo on the same changed line was not reported, and the reviewer named open thread PRRT_kwDOV1MHCs66izd6 as the reason. Review pullrequestreview-6011771261, `:robot: [verify] fail`.
+- Round 3, after fix 02cd7bc restored "Goodbye" -> fix commits: only 02cd7bc. Results: 4 of 4 fixed, 0 findings. Review pullrequestreview-6011776373 with the body `:robot: [verify] pass`. Hand-off: "Next: /sdlc:ship 74".
+- Criterion 4 -> fail when a regression was found (round 1) or a should-fix was left (round 2). Pass when every result was `fixed` and no finding was left (round 3).
+- Round limit after round 3 -> 2 full reviews, limit hit. A `[verify] pass` is newer than the latest full review, so the recommendation is "skip the review, hand off pass".
+- Findings per round: 1, 1, 0. Fix commits per round: 2, 1, 1.
+- `python3 skills/misc/create-skill/scripts/lint_skill.py skills/sdlc/review` -> PASS (mermaid not checked, mmdc missing). `sh skills/sdlc/respond/tests/run.sh` -> 13 tests, 0 failed. `sh skills/sdlc/setup/tests/run.sh` -> 38 tests, 0 failed.
+- Cleanup -> PR #74 closed and its branch deleted. Issue #75 closed as not planned. Fixture worktree removed.
+
+## Assumptions
+- No QA guide (`TESTING.md` is a TODO). I ran `review --verify` by following `skills/sdlc/review/SKILL.md` at the commit under test. The reviewer subagent got only the brief from `references/verify_brief.md`, filled in.
+- I posted the 2 full reviews and the `respond` answers myself as fixtures. I did not run the `high` reviewer or the `respond` skill.
+- The round-limit question was not shown. I computed the count and the recommendation that step 2 describes.
+- Criterion 5 was removed from #66 on 2026-11-22 and moved to #64, so this run does not check it.
+
 ## Run 2026-11-21T22:55:03Z
 Commit: 68e82eb3666e38672b63bb9a1638b0204e04b373
 Result: fail
