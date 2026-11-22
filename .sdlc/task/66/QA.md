@@ -1,5 +1,24 @@
 # QA
 
+## Run 2026-11-22T10:45:22Z
+Commit: 802d96829e9f0a4ccfd45b8bd3fc956c73d456b1
+Result: pass
+### Steps
+- Fixture: draft PR #77 (`qa-fixture/count.sh`, head f1819d2 after the fixes), with 2 full reviews posted as fixtures and 3 threads:
+  - a "Fixed differently in c37b9aa" reply;
+  - a fix reply, then a `[verify] not fixed` reply, then a decline;
+  - a fix reply on a thread that is then resolved.
+- `review 77 --verify`, step 3 -> `all.json` held 3 threads. `threads.json` held 2: the fix-differently thread and the resolved thread. The thread whose newest non-`[verify]` reply is the decline was left out, though an older reply names 6693186. Fix commits: c37b9aa f1819d2.
+- Steps 4 to 6 -> 1 reviewer with `verify_brief.md`. Results: 2 of 2 threads fixed (:4 and :8), 0 findings. Every thread to check had a result. Review pullrequestreview-6011823805, `:robot: [verify] pass`, on commit f1819d2. Hand-off: "Next: /sdlc:ship 77".
+- Round limit at head f1819d2 -> `gh pr view 77 --json headRefOid,reviews`: 2 full reviews, and the `[verify] pass` is on the head commit. Recommendation: "skip the review, hand off pass".
+- Round limit after one more commit (head d22c6f2) -> the `[verify] pass` is on f1819d2, not the head. Recommendation: "run with --verify".
+- `lint_skill.py skills/sdlc/review` and `skills/sdlc/respond` -> PASS. `sh skills/sdlc/respond/tests/run.sh` -> 13 tests, 0 failed.
+- Cleanup -> PR #77 closed and its branch deleted. Fixture worktree removed.
+
+## Assumptions
+- No QA guide. I followed `skills/sdlc/review/SKILL.md` at the commit under test. The full reviews, the replies and the earlier `[verify] not fixed` reply on the fixture were posted by hand.
+- The rule "a thread with no result counts as not fixed" was not triggered: the reviewer gave a result for every thread. The paths that did not change since the run of 2026-11-22T10:36 (criteria 2, 3, 6 and the fail side of 4) hold from that run.
+
 ## Run 2026-11-22T10:36:04Z
 Commit: e3db30bfe617b513e6c9abf9ea70afa9a29421c8
 Result: pass
