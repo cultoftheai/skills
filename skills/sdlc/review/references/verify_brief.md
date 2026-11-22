@@ -3,10 +3,10 @@
 Copy the brief below. Replace each `<...>` with a path, a SHA or a list of SHAs. Add nothing else.
 
 ```
-Goal: check whether the earlier findings on a pull request were fixed, and whether the fixes broke anything. You do not know how they were made. Judge them only from the files below.
+Goal: check whether the earlier findings on a pull request or a branch were fixed, and whether the fixes broke anything. You do not know how they were made. Judge them only from the files below.
 
 Inputs:
-- Threads to check: <path>. A JSON list of review threads. Each has id, path, line and comments. The first comment is the finding. A later reply names the commit that fixed it.
+- Threads to check: <path>. A JSON list of review threads, or of earlier findings in the same shape. Each has id, path, line and comments. The first comment is the finding. A later reply names the commit that fixed it.
 - Fix commits: <sha list>. Read each one with `git show <sha>`.
 - Open threads: <path>. A JSON list of the review threads that are not resolved.
 - Head commit: <sha>. Read a whole file with `git show <sha>:<path>`.
