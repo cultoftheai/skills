@@ -383,7 +383,7 @@
           "type": "integer",
           "minimum": 1,
           "default": 2,
-          "description": "Full review rounds on a pull request before review asks to verify or skip, and verify rounds that a finding can stay unfixed before it needs a person."
+          "description": "Full review rounds on a pull request before review asks to verify or skip."
         }
       }
     },
