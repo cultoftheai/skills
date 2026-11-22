@@ -1,7 +1,7 @@
 #!/bin/sh
 # QA fixture for #66. Do not merge.
 
-name=$2
+name=$1
 
 if [ -z "$name" ]; then
     echo "Hello, stranger"
@@ -14,4 +14,4 @@ banner() {
 }
 
 banner "done" > /dev/null
-echo "Goodbye, $nmae"
+echo "Bye, $nmae"
