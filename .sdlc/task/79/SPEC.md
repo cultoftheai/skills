@@ -5,7 +5,7 @@ Size: L (story). Confirmed for this task: 2 modules (`skills/sdlc/build`, `skill
 
 ## Data shape
 - `PR.md` as the design says. Folder: `<task.path>/<task>/`, or `$(git rev-parse --git-path sdlc/qa)` for XS.
-- Recommendation per finding: `fix` (blocking, should-fix), `skip` (nit), `stop` (the fix needs a decision the spec does not cover). `build` may change one with a reason in the Finding cell.
+- Recommendation per finding: `fix` (blocking, should-fix), `skip` (nit), `stop` (the fix needs a decision the spec does not cover). `build` may change one only to `stop`, with a reason in the Finding cell.
 - Table shown to the person: `#`, severity, location, finding, recommendation. The person answers per row `fix` or `skip`, or "as recommended".
 - Hand-off after a stop: `next_step.sh <task|-> --after review --result fail`.
 
@@ -19,12 +19,12 @@ Size: L (story). Confirmed for this task: 2 modules (`skills/sdlc/build`, `skill
   5. Apply each `fix` row as one unit (step 4 rules), and write its SHA in the Fix column.
   6. With at least one `fix` row, start `review <task|-> --local --verify`. Write each result in the Verify column and `Verified:`.
   7. A row not `fixed`, or a new blocking or should-fix finding: hand off with `--after review --result fail`. If not, step 8 hands off with `--after build` as today.
-- Step 5 "Within the spec?" also runs after each fix unit.
-- `next_step.sh` `after_review`: with no ref, or an issue at `in-progress`, a local review. `pass` names `prove`. `fail` names "settle the findings left in PR.md of the local review, then run build <task|edit>".
+- The size check of step 5 "Within the spec?" also runs after each fix unit.
+- `next_step.sh` `after_review`: with no ref, or an issue at `in-progress`, a local review. `pass` names `prove`. `fail` names "settle the findings left in PR.md in the folder of #<task>" (or "in the XS folder ..."), "then run build <task|edit>".
 
 ## Files
 - `skills/sdlc/build/SKILL.md`: Dependencies (`review`, `orchestrator`), step 7, the flow graph, the `--auto` flag, Output (`PR.md`).
-- `skills/sdlc/build/references/local_review.md` (new): the seven steps above and the table.
+- `skills/sdlc/build/references/local_review.md` (new): the steps above, the settled-record check, and the table.
 - `skills/sdlc/build/references/auto_mode.md`: a `stop` finding is a hard stop.
 - `skills/sdlc/next/scripts/next_step.sh` and the copy `.sdlc/scripts/next_step.sh`: the `after_review` branch.
 - `skills/sdlc/next/tests/test_next_step.sh`: `test_after_review_of_a_local_review`.
