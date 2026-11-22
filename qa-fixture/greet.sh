@@ -10,7 +10,7 @@ else
 fi
 
 banner() {
-    echo "=== $1 ==="
+    printf '=== %s ===\n' "$1"
 }
 
 banner "done" > /dev/null
