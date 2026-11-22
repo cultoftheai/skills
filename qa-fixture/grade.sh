@@ -2,10 +2,13 @@
 # Pritn the grade for a score from 0 to 100: A from 90, B from 80, C below.
 # Exits 2 on a score outside 0 to 100.
 score=$1
-if [ "$score" -gt 90 ]; then
+if [ "$score" -gt 100 ]; then
+    exit 2
+fi
+if [ "$score" -ge 90 ]; then
     echo A
 elif [ "$score" -ge 80 ]; then
     echo B
 else
-    echo C
+    echo D
 fi
