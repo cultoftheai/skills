@@ -14,7 +14,7 @@ The folder is `<task.path>/<task>/`, or `$(git rev-parse --git-path sdlc/qa)` fo
 
 A stop sets Status to `stopped`, commits `PR.md` for a task, and hands off with `sh .sdlc/scripts/next_step.sh <ref> --after review --result fail`, with `--auto` when the run has it. Run one review and one verify, no more.
 
-To settle `PR.md` after a stop, a person changes each `stop` row to `fix` or `skip`, and each row that is not `fixed` after a verify to `skip`, or to `fix` with an empty Fix column to try again. Then they run `build` again.
+To settle `PR.md` after a stop, a person changes the Decision of each `stop` row to `fix` or `skip`. For each row that is not `fixed` after a verify, they change the Decision to `skip`, or keep `fix` and clear its Fix and Verify to try again. Then they run `build` again.
 
 ## PR.md
 
