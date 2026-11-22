@@ -1,5 +1,15 @@
 # QA
 
+## Run 2026-11-22T23:28:14Z
+Commit: 53f4e51ddecbbf9829a3be667129930c258147c9
+Result: pass
+### Steps
+- Review round 2 fixes: 4bd7988 (verify rows get a Decision; a row not fixed blocks reuse), d7271ea (commit PR.md on a re-size), 133fab1 (the settle rule names Decision, Fix and Verify).
+- `sh skills/sdlc/next/tests/run.sh` -> 32 tests, 0 failed. `lint_skill.py skills/sdlc/build` -> PASS (mermaid not checked, mmdc missing).
+
+## Assumptions
+- The three commits change only sentences of `local_review.md` for a stop after a verify and for a re-size. The reuse of a settled PR.md (run of 2026-11-22T20:46Z) had no Verify values, so it reads the same under the new check. The other paths hold from the earlier runs in this file.
+
 ## Run 2026-11-22T20:46:56Z
 Commit: b46ef6660031f2316ae2cf613e5961d88668417b
 Result: pass
