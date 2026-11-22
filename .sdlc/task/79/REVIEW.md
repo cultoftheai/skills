@@ -1,5 +1,13 @@
 # Review of #86
 
+## Round 2, 2026-11-22T23:28:08Z
+
+| Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
+|---|---|---|---|---|---|---|
+| https://github.com/cultoftheai/skills/pull/86#discussion_r4660476057 | jakubtobiasz | A PR.md left by a verify stop looks settled, because verify rows had no Decision | major | high | fix | 4bd7988 |
+| https://github.com/cultoftheai/skills/pull/86#discussion_r4660476065 | jakubtobiasz | A re-size leaves PR.md uncommitted | minor | high | fix | d7271ea |
+| https://github.com/cultoftheai/skills/pull/86#discussion_r4660476067 | jakubtobiasz | The settle rule does not name the columns to change | nit | high | fix | 133fab1 |
+
 ## Round 1, 2026-11-22T20:46:56Z
 
 | Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
@@ -19,6 +27,8 @@
 | https://github.com/cultoftheai/skills/pull/86#discussion_r4659941408 | jakubtobiasz | Every --after review on an in-progress issue is read as a local review | nit | medium | needs-you | The design (.sdlc/task/60/DESIGN.md, Changed contracts) says a spec review runs before in-progress. A person decides whether a spec review of an in-progress task needs its own hand-off. |
 
 ## Assumptions
+
+- Round 2: no person confirmed the triage (`respond --auto`); the verify threads also had `needs_reply` false (#64).
 
 - Round 1: no person confirmed the triage (`respond --auto`).
 - Round 1: threads 4 and 13 would be declines; under `--auto` they are needs-you.
