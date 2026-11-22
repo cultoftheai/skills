@@ -1,5 +1,11 @@
 # Review of #85
 
+## Round 2, 2026-11-22T19:19:47Z
+
+| Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
+|---|---|---|---|---|---|---|
+| https://github.com/cultoftheai/skills/pull/85#discussion_r4659562591 | jakubtobiasz | --local --auto with no target had no defined action | minor | high | fix | 7561f06 |
+
 ## Round 1, 2026-11-22T19:07:36Z
 
 | Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
@@ -16,5 +22,7 @@
 | https://github.com/cultoftheai/skills/pull/85#discussion_r4659505036 | jakubtobiasz | README review row does not name a branch | nit | high | decline | #80 updates the README skill table (its criterion 2) |
 
 ## Assumptions
+
+- Round 2: the verify thread also had `needs_reply` false (#64). The person confirmed the reply.
 
 - Round 1: `review_threads.sh list` gave `needs_reply` false on all 10 threads, because the review was posted by the PR author's gh user (#64). The person confirmed that every thread gets a reply.
