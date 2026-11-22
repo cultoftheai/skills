@@ -63,4 +63,4 @@ flowchart TD
 
 ## Output
 
-- Commits on the task branch, `PR.md` in the task folder, the task `in-progress`, and a report: the commits, the checks run, the diff size against `sizing.review_limit`, each finding of the local review with its decision and result, any stop with its reason, and the `Next:` line last.
+- Commits on the task branch, `PR.md` in the folder of the local review, the task `in-progress`, and a report: the commits, the checks run, the diff size against `sizing.review_limit`, each finding of the local review with its decision and result, any stop with its reason, and the `Next:` line last.

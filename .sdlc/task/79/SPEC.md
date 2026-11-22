@@ -39,3 +39,8 @@ Size: L (story). Confirmed for this task: 2 modules (`skills/sdlc/build`, `skill
 
 ## Open questions
 - None.
+
+## Decisions during the build
+- A recommendation follows the severity. `build` may change it only to `stop`, so that `--auto` never skips a blocking or should-fix finding and never fixes a nit (QA run of 2026-11-22, criteria 4 and 6).
+- The diff check after each fix runs only the size limit of step 5. A re-size there hands off as a re-size, and the local review runs once per `build` run.
+- After a stop, the person settles `PR.md` and runs `build` again. A `PR.md` with no `stop` row and an unfixed `fix` row is reused: `build` applies those rows and verifies them, without a new review (build assumption under `--auto`, recommended to the person on 2026-11-22).
