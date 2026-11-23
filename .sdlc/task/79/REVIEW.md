@@ -1,5 +1,11 @@
 # Review of #86
 
+## Round 6, 2026-11-23T07:57:29Z
+
+| Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
+|---|---|---|---|---|---|---|
+| https://github.com/cultoftheai/skills/pull/86#discussion_r4663083580 | jakubtobiasz | The Decision rule for verify rows can be read two ways | nit | high | fix | 819aeef |
+
 ## Round 5, 2026-11-23T07:55:45Z
 
 | Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
