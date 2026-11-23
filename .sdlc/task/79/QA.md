@@ -1,5 +1,15 @@
 # QA
 
+## Run 2026-11-23T07:55:51Z
+Commit: adc95ca177cb7070a0152ed072f9089a066ce922
+Result: pass
+### Steps
+- Review round 5 fix 64775f2: a row that the verify adds gets the Decision `skip` only when its recommendation is `skip`, and `stop` otherwise.
+- `sh skills/sdlc/next/tests/run.sh` -> 32 tests, 0 failed. `lint_skill.py skills/sdlc/build` -> PASS (mermaid not checked, mmdc missing).
+
+## Assumptions
+- 64775f2 changes one clause for findings that the verify adds. The other paths hold from the earlier runs in this file.
+
 ## Run 2026-11-23T07:48:09Z
 Commit: 7b1f1a6726e8e74ddad62e16cb73a3e3a5fc8ea6
 Result: pass
