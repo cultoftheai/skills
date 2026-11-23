@@ -1,5 +1,11 @@
 # Review of #86
 
+## Round 3, 2026-11-23T07:48:03Z
+
+| Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
+|---|---|---|---|---|---|---|
+| https://github.com/cultoftheai/skills/pull/86#discussion_r4662999178 | jakubtobiasz | A new blocking or should-fix verify finding got the Decision fix with nobody asked | major | high | fix | a5d1348 |
+
 ## Round 2, 2026-11-22T23:28:08Z
 
 | Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
@@ -27,6 +33,8 @@
 | https://github.com/cultoftheai/skills/pull/86#discussion_r4659941408 | jakubtobiasz | Every --after review on an in-progress issue is read as a local review | nit | medium | needs-you | The design (.sdlc/task/60/DESIGN.md, Changed contracts) says a spec review runs before in-progress. A person decides whether a spec review of an in-progress task needs its own hand-off. |
 
 ## Assumptions
+
+- Round 3: no person confirmed the triage (`respond --auto`).
 
 - Round 2: no person confirmed the triage (`respond --auto`); the verify threads also had `needs_reply` false (#64).
 
