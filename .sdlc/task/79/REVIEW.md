@@ -1,5 +1,12 @@
 # Review of #86
 
+## Round 4, 2026-11-23T07:50:17Z
+
+| Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
+|---|---|---|---|---|---|---|
+| https://github.com/cultoftheai/skills/pull/86#discussion_r4659941383 | jakubtobiasz | a5d1348 lets a verify nit recommended stop pass as skip | major | high | needs-you | 5 rounds; a person approves the one-line fix |
+| https://github.com/cultoftheai/skills/pull/86#discussion_r4663019567 | jakubtobiasz | A verify nit is not asked without --auto | nit | medium | needs-you | Would decline: one verify per run, nits go to the report |
+
 ## Round 3, 2026-11-23T07:48:03Z
 
 | Thread | Reviewer | Concern | Severity | Confidence | Outcome | Evidence |
@@ -33,6 +40,8 @@
 | https://github.com/cultoftheai/skills/pull/86#discussion_r4659941408 | jakubtobiasz | Every --after review on an in-progress issue is read as a local review | nit | medium | needs-you | The design (.sdlc/task/60/DESIGN.md, Changed contracts) says a spec review runs before in-progress. A person decides whether a spec review of an in-progress task needs its own hand-off. |
 
 ## Assumptions
+
+- Round 4: no person confirmed the triage; the declined nit became needs-you under `--auto`.
 
 - Round 3: no person confirmed the triage (`respond --auto`).
 
