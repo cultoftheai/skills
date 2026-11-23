@@ -1,5 +1,15 @@
 # QA
 
+## Run 2026-11-23T07:57:35Z
+Commit: 19db9f010e5fbc74e4424bbde3b200083a0494aa
+Result: pass
+### Steps
+- Review round 6 fix 819aeef: the same rule, reworded so it reads one way ("`skip` when its recommendation is `skip`, and `stop` otherwise").
+- `sh skills/sdlc/next/tests/run.sh` -> 32 tests, 0 failed. `lint_skill.py skills/sdlc/build` -> PASS (mermaid not checked, mmdc missing).
+
+## Assumptions
+- Wording only; the behaviour holds from the run before this one.
+
 ## Run 2026-11-23T07:55:51Z
 Commit: adc95ca177cb7070a0152ed072f9089a066ce922
 Result: pass
