@@ -1,5 +1,15 @@
 # QA
 
+## Run 2026-11-23T07:48:09Z
+Commit: 7b1f1a6726e8e74ddad62e16cb73a3e3a5fc8ea6
+Result: pass
+### Steps
+- Review round 3 fix a5d1348: a row that the verify adds gets the Decision `skip` for a nit and `stop` for any other, and step 9 stops on a verify row with the Decision `stop`.
+- `sh skills/sdlc/next/tests/run.sh` -> 32 tests, 0 failed. `lint_skill.py skills/sdlc/build` -> PASS (mermaid not checked, mmdc missing).
+
+## Assumptions
+- a5d1348 changes two sentences for findings that the verify adds. The XS runs of 2026-11-22T20:39Z added only nits after a verify (`skip`, as now) and stopped only on a row not fixed. The other paths hold from the earlier runs in this file.
+
 ## Run 2026-11-22T23:28:14Z
 Commit: 53f4e51ddecbbf9829a3be667129930c258147c9
 Result: pass
