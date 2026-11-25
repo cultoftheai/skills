@@ -57,3 +57,53 @@ test_bad_arguments_exit_2() {
     "$SH" "$SCRIPTS/install.sh" /does/not/exist 2> /dev/null
     assert_eq $? 2
 }
+
+test_creates_specs_archive_and_work_directories() {
+    make_skills
+    "$SH" skills/setup/scripts/install.sh repo > /dev/null || exit 1
+    [ -d repo/.sdlc/specs ] || exit 1
+    [ -d repo/.sdlc/specs/archived ] || exit 1
+    [ -d repo/.sdlc/work ] || exit 1
+}
+
+test_writes_work_to_sdlc_gitignore_without_touching_root() {
+    make_skills
+    echo node_modules/ > repo/.gitignore
+    output=$("$SH" skills/setup/scripts/install.sh repo) || exit 1
+    assert_contains "$output" "wrote repo/.sdlc/.gitignore"
+    assert_eq "$(cat repo/.sdlc/.gitignore)" "work/"
+    assert_eq "$(cat repo/.gitignore)" "node_modules/"
+}
+
+test_preserves_existing_sdlc_gitignore_and_is_idempotent() {
+    make_skills
+    mkdir -p repo/.sdlc
+    printf 'local.env' > repo/.sdlc/.gitignore
+    "$SH" skills/setup/scripts/install.sh repo > /dev/null || exit 1
+    "$SH" skills/setup/scripts/install.sh repo > /dev/null || exit 1
+    assert_eq "$(cat repo/.sdlc/.gitignore)" "$(printf 'local.env\nwork/')"
+}
+
+test_respects_custom_paths_from_settings() {
+    make_skills
+    mkdir -p repo/.sdlc
+    printf '{"specs":{"path":"docs/specs","archive_path":"docs/specs/done"},"work":{"path":".sdlc/tmp-work/"}}\n' \
+        > repo/.sdlc/settings.json
+    "$SH" skills/setup/scripts/install.sh repo > /dev/null || exit 1
+    [ -d repo/docs/specs ] || exit 1
+    [ -d repo/docs/specs/done ] || exit 1
+    [ -d repo/.sdlc/tmp-work ] || exit 1
+    assert_eq "$(cat repo/.sdlc/.gitignore)" "tmp-work/"
+}
+
+test_warns_when_work_path_is_outside_sdlc() {
+    make_skills
+    mkdir -p repo/.sdlc
+    printf '{"specs":{"path":".sdlc/specs","archive_path":".sdlc/specs/archived"},"work":{"path":"tmp/work"}}\n' \
+        > repo/.sdlc/settings.json
+    err=$("$SH" skills/setup/scripts/install.sh repo 2>&1 >/dev/null) || exit 1
+    [ -d repo/tmp/work ] || exit 1
+    [ ! -f repo/.sdlc/.gitignore ] || exit 1
+    [ ! -f repo/.gitignore ] || exit 1
+    assert_contains "$err" "tmp/work"
+}
