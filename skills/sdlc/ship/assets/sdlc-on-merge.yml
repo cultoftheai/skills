@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.ref }}
-      - name: Set done
+      - name: Update issue stage
         run: sh .sdlc/scripts/on_merge.sh "$PR"
         env:
           GH_TOKEN: ${{ github.token }}
