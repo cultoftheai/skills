@@ -1,7 +1,7 @@
 ---
 name: create-skill
 description: Use when the user wants to create a new skill in this repository's house format (Dependencies, Args, Flags, Flow Graph, Flow steps, Rules, Output). Drafts SKILL.md and any references/ files from the house template, asks for missing details, writes the files after the user approves, and lints the result. Triggers - create a skill, new skill, scaffold a skill, write a SKILL.md. Not for editing or reviewing an existing skill.
-argument-hint: <skill-name> <purpose> [category]
+argument-hint: "<skill-name> <purpose> [category]"
 ---
 
 ## Dependencies

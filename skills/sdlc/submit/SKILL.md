@@ -1,7 +1,7 @@
 ---
 name: submit
 description: Use when a built and locally proven change is ready for review and needs a pull request. Checks that self-qa.md holds a pass for the head commit and no ephemeral work files are in the diff, then opens a clean Code PR with the goal, spec link, visual, evidence, risk and Closes #N, and moves the issue to review. Triggers - open the PR, submit the task, create a pull request. Not for reviewing a PR or running QA.
-argument-hint: [task] [--auto]
+argument-hint: "[task] [--auto]"
 ---
 
 ## Dependencies

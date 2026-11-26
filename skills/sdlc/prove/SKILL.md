@@ -1,7 +1,7 @@
 ---
 name: prove
 description: Use when a built change must be shown to work before it goes to review. Runs the change on its real surface (the running app, the real endpoint, the real command), then records the commit, every step and the result in self-qa.md. Triggers - prove the task, verify the change, run QA, check it works. Not for writing tests or fixing code.
-argument-hint: [task] [--local] [--auto]
+argument-hint: "[task] [--local] [--auto]"
 ---
 
 ## Dependencies

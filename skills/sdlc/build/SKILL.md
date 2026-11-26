@@ -1,7 +1,7 @@
 ---
 name: build
 description: Use when a shaped task is ready to be coded from its merged spec, or when an XS change (one obvious edit, no ticket) must be made. Names the data shape first, works test-first where a seam exists, commits passing units, runs local self-review and local self-QA in .sdlc/work, and stops for a re-size when the diff outgrows the review limit or the spec leaves a decision open. Triggers - build this task, implement the spec, start coding, make this small fix. Not for writing the spec or opening the PR.
-argument-hint: <task|xs-edit> [--auto]
+argument-hint: "<task|xs-edit> [--auto]"
 ---
 
 ## Dependencies

@@ -1,7 +1,7 @@
 ---
 name: document
 description: Use when a task is built, proven and reviewed, and the project docs must show how it works now before the PR merges. Reads the PR diff, QA.md and SPEC.md, edits the existing docs, writes an ADR for each decision with rejected alternatives, and pushes the docs to the same PR. Triggers - document this task, update the docs for this PR, write the docs, add an ADR. Not for writing a spec or a design, and not for XS work.
-argument-hint: [task] [--auto]
+argument-hint: "[task] [--auto]"
 ---
 
 ## Dependencies

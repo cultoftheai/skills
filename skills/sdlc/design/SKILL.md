@@ -1,7 +1,7 @@
 ---
 name: design
 description: Use when a ready L story needs an architecture design before it is sliced into tasks. Reads the code, confirms or updates the size, writes a flat design file in the specs folder, verifies it, and opens a Design PR when configured. Triggers - design this story, write the design, architect this L story. Not for task specs or for splitting a story into tasks.
-argument-hint: <story> [--auto]
+argument-hint: "<story> [--auto]"
 ---
 
 ## Args

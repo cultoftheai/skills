@@ -1,7 +1,7 @@
 ---
 name: respond
 description: Use when a pull request has review comments from a person or a bot that need an answer. Triages each unresolved review thread, applies the accepted changes, verifies them, replies on every thread, resolves where allowed, asks for re-review once and records the outcomes in REVIEW.md. Triggers - respond to review, address PR comments, fix review feedback, answer review threads. Not for reviewing a pull request yourself.
-argument-hint: <pr> [--auto]
+argument-hint: "<pr> [--auto]"
 ---
 
 ## Dependencies
