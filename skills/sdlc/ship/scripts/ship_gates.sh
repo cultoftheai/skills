@@ -11,20 +11,21 @@
 #   for changes, and GitHub's review decision is not blocking.
 # - checks: no check failed, was cancelled or is still pending.
 # - threads: every unresolved review thread ends with a reply from the PR author.
-# - qa: local HEAD is the PR head, and qa_check.sh passes for the task folder
-#   of the issue the PR closes. When the task folder was removed on the branch,
-#   the check runs on the last commit that still had it, and every later change
-#   must be inside the task folder. A PR that closes no issue is XS work: its
-#   evidence is the untracked QA.md in `git rev-parse --git-path sdlc/qa`.
+# - qa: local HEAD is the PR head, and either all PR files are under specs.path
+#   (Spec/Design PR) or the newest "<review.prefix> [qa]" PR comment is a pass
+#   for the PR head (or an ancestor followed only by commits carrying
+#   SDLC-Docs-Only: true, SDLC-Spec-Archive: true, or touching only specs.path).
 #
-# Reads task.path from .sdlc/settings.json and needs jq.
+# Reads review.prefix and specs.path from .sdlc/settings.json and needs jq.
 
 set -u
 exec 3>&1
 
-HERE=$(cd "$(dirname "$0")" && pwd)
 SETTINGS=.sdlc/settings.json
-DEFAULT_TASK_PATH=.sdlc/task
+DEFAULT_PREFIX=':robot:'
+DEFAULT_SPECS_PATH=.sdlc/specs
+DOCS_ONLY_TRAILER=SDLC-Docs-Only
+SPEC_ARCHIVE_TRAILER=SDLC-Spec-Archive
 TAB=$(printf '\t')
 FAILED=0
 
@@ -35,7 +36,8 @@ query($owner: String!, $name: String!, $number: Int!) {
       headRefOid
       reviewDecision
       author { login }
-      closingIssuesReferences(first: 10) { nodes { number } }
+      files(first: 100) { nodes { path } }
+      comments(last: 100) { nodes { body } }
       latestOpinionatedReviews(first: 100) { nodes { state author { __typename login } } }
       reviewThreads(first: 100) {
         nodes { isResolved comments(last: 1) { nodes { url author { login } } } }
@@ -93,10 +95,26 @@ report() {
     [ "$result" = pass ] || FAILED=1
 }
 
-# Print task.path from the settings file, or the default when it is not set.
-read_task_path() {
-    path=$(jq -r '.task.path // empty' "$SETTINGS" 2>/dev/null) || fail "cannot read $SETTINGS"
-    printf '%s\n' "${path:-$DEFAULT_TASK_PATH}"
+# Print the text in lower case.
+lower() {
+    printf '%s\n' "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+# Read review.prefix and specs.path (normalized with trailing slash) from .sdlc/settings.json.
+read_settings() {
+    [ -f "$SETTINGS" ] || fail "cannot read $SETTINGS"
+    jq -e . "$SETTINGS" >/dev/null 2>&1 || fail "cannot read $SETTINGS"
+    PREFIX=$(jq -r '.review.prefix // empty' "$SETTINGS" 2>/dev/null) || fail "cannot read $SETTINGS"
+    PREFIX=${PREFIX:-$DEFAULT_PREFIX}
+    specs=$(jq -r '.specs.path // empty' "$SETTINGS" 2>/dev/null) || fail "cannot read $SETTINGS"
+    specs=${specs:-$DEFAULT_SPECS_PATH}
+    while [ "${specs#./}" != "$specs" ]; do
+        specs=${specs#./}
+    done
+    while [ "${specs%/}" != "$specs" ] && [ "$specs" != / ]; do
+        specs=${specs%/}
+    done
+    SPECS_PREFIX="$specs/"
 }
 
 # Print the pullRequest object of the GraphQL query for the PR.
@@ -120,54 +138,42 @@ checks_gate() {
     esac
 }
 
-# Print the verdict of the gate that needs QA evidence for the head commit.
-qa_gate() {
-    head=$(field "$1" .headRefOid)
-    local_head=$(git rev-parse HEAD 2>/dev/null)
-    issue=$(field "$1" '.closingIssuesReferences.nodes[0].number // empty')
-    if [ "$local_head" != "$head" ]; then
-        verdict fail "local HEAD $local_head is not the PR head $head"
-    elif [ -z "$issue" ]; then
-        run_qa_check "$(git rev-parse --git-path sdlc/qa)"
-    elif git cat-file -e "HEAD:${2%/}/$issue/QA.md" 2>/dev/null; then
-        run_qa_check "${2%/}/$issue"
-    else
-        qa_before_removal "${2%/}/$issue"
-    fi
+# Exit 0 when one of the whitespace-separated values is "true", in any case.
+has_true() {
+    lower "$1" | tr -s '[:space:]' '\n' | grep -qx true
 }
 
-# Print the verdict of qa_check.sh for the task folder, in the current directory.
-run_qa_check() {
-    if output=$(sh "$HERE/qa_check.sh" "$1" 2>&1); then
-        verdict pass "$output"
-    else
-        verdict fail "$output"
-    fi
-}
-
-# Print the verdict of the QA check on the last commit that had the task folder, when HEAD only removed it.
-qa_before_removal() {
-    removal=$(git log -1 --format=%H --diff-filter=D HEAD -- "$1/QA.md" 2>/dev/null)
-    if [ -z "$removal" ]; then
-        verdict fail "$1/QA.md does not exist; run prove first"
-        return
-    fi
-    outside=$(changed_outside "$removal^" "$1")
-    if [ -n "$outside" ]; then
-        verdict fail "QA.md was removed and later commits change $(first_five "$outside")"
-        return
-    fi
-    qa_check_in_worktree "$1" "$removal^"
-}
-
-# Print the files changed between the commit and HEAD that are outside the task folder.
-changed_outside() {
-    git diff --name-only "$1" HEAD | while IFS= read -r path; do
+# Print paths from the list that do not start with SPECS_PREFIX.
+outside_specs() {
+    printf '%s\n' "$1" | while IFS= read -r path; do
+        [ -n "$path" ] || continue
         case "$path" in
-            "$2"/*) ;;
-            *) printf '%s\n' "$path" ;;
+            "$SPECS_PREFIX"*) continue ;;
         esac
+        printf '%s\n' "$path"
     done
+}
+
+# Print the files changed by one commit outside SPECS_PREFIX, or nothing when it carries a non-code trailer.
+commit_stale_files() {
+    trailers=$(git log -1 "--format=%(trailers:key=$DOCS_ONLY_TRAILER,key=$SPEC_ARCHIVE_TRAILER,valueonly)" "$1" 2>/dev/null) || return 1
+    if has_true "$trailers"; then
+        return 0
+    fi
+    changed=$(git diff --name-only "$1^1" "$1" 2>/dev/null) || return 1
+    outside_specs "$changed"
+}
+
+# Print sorted unique files outside SPECS_PREFIX changed by commits after the tested commit without non-code trailers.
+stale_changes() {
+    later=$(git rev-list "$1..$2" 2>/dev/null) || return 1
+    files=''
+    for sha in $later; do
+        part=$(commit_stale_files "$sha") || return 1
+        files="$files
+$part"
+    done
+    printf '%s\n' "$files" | sed '/^$/d' | LC_ALL=C sort -u
 }
 
 # Print the first five lines of the list joined by ", ".
@@ -175,18 +181,62 @@ first_five() {
     printf '%s\n' "$1" | awk 'NR <= 5 { printf "%s%s", (NR > 1 ? ", " : ""), $0 }'
 }
 
-# Print the verdict of qa_check.sh for the task folder in a temporary worktree at the commit.
-qa_check_in_worktree() {
-    tmp=$(mktemp -d)
-    if ! err=$(git worktree add --detach "$tmp/tree" "$2" 2>&1); then
-        rm -rf "$tmp"
-        verdict fail "cannot check out $2: $err"
+# Print the verdict of the gate that needs an Official QA PR comment for the head commit.
+qa_gate() {
+    head=$(field "$1" .headRefOid)
+    local_head=$(git rev-parse HEAD 2>/dev/null)
+    if [ "$local_head" != "$head" ]; then
+        verdict fail "local HEAD $local_head is not the PR head $head"
         return
     fi
-    result=$(cd "$tmp/tree" && run_qa_check "$1")
-    git worktree remove --force "$tmp/tree" >/dev/null 2>&1
-    rm -rf "$tmp"
-    printf '%s\n' "$result"
+    is_specs_only=$(printf '%s\n' "$1" | jq -r --arg specs "$SPECS_PREFIX" \
+        '[(.files.nodes // [])[].path] as $p | ($p | length) > 0 and all($p[]; startswith($specs))')
+    if [ "$is_specs_only" = true ]; then
+        verdict pass "spec/design-only PR; no app QA required"
+        return
+    fi
+    comment=$(printf '%s\n' "$1" | jq -r --arg prefix "$PREFIX [qa]" \
+        '[(.comments.nodes // [])[] | .body // "" | select(startswith($prefix))] | last // empty')
+    if [ -z "$comment" ]; then
+        verdict fail "no Official QA comment found; run prove $2 first"
+        return
+    fi
+    first_line=$(printf '%s\n' "$comment" | head -n 1)
+    result=${first_line#"$PREFIX [qa]"}
+    result=$(printf '%s\n' "$result" | awk '{print $1}')
+    result=$(lower "$result")
+    commit=$(printf '%s\n' "$comment" | sed -n 's/^Commit:[[:space:]]*\([^[:space:]]\{1,\}\)[[:space:]]*$/\1/p' | head -n 1)
+    if [ -z "$commit" ]; then
+        verdict fail "newest Official QA comment has no 'Commit:' line"
+        return
+    fi
+    if [ "$result" != pass ]; then
+        verdict fail "newest Official QA comment for $commit is '$result', not 'pass'"
+        return
+    fi
+    tested=$(git rev-parse --verify --quiet "$commit^{commit}" 2>/dev/null)
+    if [ -z "$tested" ]; then
+        verdict fail "newest Official QA comment names commit $commit, which this repository does not have"
+        return
+    fi
+    if [ "$tested" = "$head" ]; then
+        verdict pass "Official QA passed for $tested"
+        return
+    fi
+    base=$(git merge-base "$tested" "$head" 2>/dev/null)
+    if [ "$base" != "$tested" ]; then
+        verdict fail "newest Official QA comment is for $commit, which is not an ancestor of PR head $head"
+        return
+    fi
+    if ! stale=$(stale_changes "$tested" "$head"); then
+        verdict fail "cannot inspect commits between $commit and $head"
+        return
+    fi
+    if [ -n "$stale" ]; then
+        verdict fail "newest Official QA pass is for $commit, but PR head $head also changes $(first_five "$stale")"
+        return
+    fi
+    verdict pass "Official QA passed for $tested"
 }
 
 if [ $# -ne 1 ]; then
@@ -196,10 +246,10 @@ fi
 case "$1" in
     '' | *[!0-9]*) usage; exit 1 ;;
 esac
-task_path=$(read_task_path) || exit 1
+read_settings || exit 1
 pr=$(fetch_pr "$1") || exit 1
 report approval "$(field "$pr" "$APPROVAL")"
 report checks "$(checks_gate "$1")"
 report threads "$(field "$pr" "$THREADS")"
-report qa "$(qa_gate "$pr" "$task_path")"
+report qa "$(qa_gate "$pr" "$1")"
 exit "$FAILED"

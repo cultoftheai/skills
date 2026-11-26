@@ -6,6 +6,8 @@ NODE_DEFS='
   def pull($n; $s): {number: $n, state: $s};
   def review($s; $l; $t): {state: $s, author: {login: $l, __typename: $t}};
   def thread($resolved; $l): {isResolved: $resolved, comments: {nodes: [{author: {login: $l}}]}};
+  def qa($r): {body: ":robot: [qa] \($r)\nCommit: aaa\nDate: 2026-11-26T10:00:00Z"};
+  def file($p): {path: $p};
 '
 
 # Add an issue. Usage: issue <number> [labels,comma,separated] [jq object of state, parent, subs, prs]
@@ -17,11 +19,13 @@ issue() {
            subIssues: {nodes: $o.subs}, closedByPullRequestsReferences: {nodes: $o.prs}}')"
 }
 
-# Add a pull request by "dev". Usage: pr <number> <issue it closes|-> [jq object of state, body, reviews, requests, threads]
+# Add a pull request by "dev". Usage: pr <number> <issue it closes|-> [jq object of state, body, files, comments, reviews, requests, threads]
 pr() {
     fake_item "$(jq -cn --argjson n "$1" --arg closes "$2" "$NODE_DEFS (${3:-null}) as \$extra | "'
-        ({state: "OPEN", body: "", reviews: [], requests: [], threads: []} + $extra) as $o
+        ({state: "OPEN", body: "", files: [], comments: [], reviews: [], requests: [], threads: []} + $extra) as $o
         | {__typename: "PullRequest", number: $n, state: $o.state, body: $o.body, author: {login: "dev"},
+           files: {nodes: $o.files},
+           comments: {nodes: $o.comments},
            closingIssuesReferences: {nodes: (if $closes == "-" then [] else [{number: ($closes | tonumber)}] end)},
            reviews: {nodes: $o.reviews},
            reviewRequests: {nodes: [$o.requests[] | {requestedReviewer: {__typename: "User", login: .}}]},
@@ -41,6 +45,7 @@ test_missing_settings_points_to_setup() {
 }
 
 test_auto_is_added_to_commands_and_waits() {
+    issue 5 in-progress
     assert_eq "$(next_line 5 --after prove --auto)" "Next: /sdlc:submit 5 --auto"
     pr 9 5
     fake_gates "approval: fail - no approval from a person"
@@ -49,6 +54,7 @@ test_auto_is_added_to_commands_and_waits() {
 }
 
 test_codex_form_from_flag_and_environment() {
+    issue 5 in-progress
     assert_eq "$(next_line 5 --after prove --harness codex)" 'Next: $submit 5'
     assert_eq "$(CODEX_SANDBOX=seatbelt "$SH" "$NEXT_STEP" 5 --after prove)" 'Next: $submit 5'
     assert_eq "$(CLAUDECODE=1 "$SH" "$NEXT_STEP" 5 --after prove)" "Next: /sdlc:submit 5"
@@ -63,6 +69,7 @@ test_bad_arguments_exit_2() {
 }
 
 test_hash_ref_is_a_number() {
+    issue 5 in-progress
     assert_eq "$(next_line '#5' --after prove)" "Next: /sdlc:submit 5"
 }
 
@@ -126,11 +133,22 @@ test_after_slice_stop() {
     assert_eq "$(next_line 22 --after slice --result fail)" "Next: get story #22 approved and labelled ready, then run /sdlc:slice 22"
 }
 
+test_after_design() {
+    issue 20 ready,size:L
+    issue 21 shaped,size:L
+    issue 22 ready,size:M
+    assert_eq "$(next_line 20 --after design)" "Next: verify and merge the open Design PR for #20, then run /sdlc:next 20"
+    assert_eq "$(next_line 21 --after design)" "Next: /sdlc:slice 21"
+    assert_eq "$(next_line 22 --after design)" "Next: /sdlc:slice 22"
+}
+
 test_after_shape_pass() {
     issue 21 shaped '{parent: 20}'
     issue 20 shaped,size:L
+    issue 23 ready '{parent: 20}'
     assert_eq "$(next_line 21 --after shape)" "Next: /sdlc:build 21"
     assert_eq "$(next_line 20 --after shape)" "Next: /sdlc:slice 20"
+    assert_eq "$(next_line 23 --after shape)" "Next: verify and merge the open Spec PR for #23, then run /sdlc:next 23"
 }
 
 test_after_shape_resize() {
@@ -152,10 +170,17 @@ test_after_build() {
 }
 
 test_after_prove() {
+    issue 5 in-progress
+    pr 9 5
+    pr 10 - '{body: "small fix"}'
     assert_eq "$(next_line 5 --after prove --result pass)" "Next: /sdlc:submit 5"
     assert_eq "$(next_line - --after prove --result pass)" "Next: /sdlc:submit"
     assert_eq "$(next_line 5 --after prove --result fail)" "Next: /sdlc:build 5"
     assert_eq "$(next_line - --after prove --result fail)" 'Next: /sdlc:build "<the edit in words>"'
+    assert_eq "$(next_line 9 --after prove --result pass)" "Next: /sdlc:document 5"
+    assert_eq "$(next_line 10 --after prove --result pass)" "Next: /sdlc:ship 10"
+    assert_eq "$(next_line 9 --after prove --result fail)" "Next: /sdlc:build 5"
+    assert_eq "$(next_line 10 --after prove --result fail)" 'Next: /sdlc:build "<the edit in words>"'
 }
 
 test_after_submit() {
@@ -166,11 +191,13 @@ test_after_submit() {
 
 test_after_review_of_a_pr() {
     pr 9 5
+    pr 8 5 '{comments: [qa("pass")]}'
     pr 7 - '{body: "small fix"}'
-    pr 6 - '{body: "Fixes #3"}'
-    assert_eq "$(next_line 9 --after review --result pass)" "Next: /sdlc:document 5"
-    assert_eq "$(next_line 9 --after review --result fail)" "Next: /sdlc:respond 9"
-    assert_eq "$(next_line 7 --after review --result pass)" "Next: /sdlc:ship 7"
+    pr 6 - '{body: "Fixes #3", comments: [qa("pass")]}'
+    assert_eq "$(next_line 9 --after review --result pass)" "Next: /sdlc:prove 9"
+    assert_eq "$(next_line 8 --after review --result pass)" "Next: /sdlc:document 5"
+    assert_eq "$(next_line 9 --after review --result fail)" "Next: /sdlc:handle-review 9"
+    assert_eq "$(next_line 7 --after review --result pass)" "Next: /sdlc:prove 7"
     assert_eq "$(next_line 6 --after review --result pass)" "Next: /sdlc:document 3"
 }
 
@@ -181,13 +208,24 @@ test_after_review_of_a_spec() {
         "Next: apply the review findings to the spec or design of #5, then run /sdlc:build 5"
 }
 
-test_after_respond() {
+test_after_verify_spec() {
+    pr 12 - '{body: "Spec for #5"}'
+    pr 13 - '{body: "Design for #87", requests: ["alice"]}'
+    assert_eq "$(next_line 12 --after verify-spec --result pass)" "Next: /sdlc:ship 12"
+    assert_eq "$(next_line 12 --after verify-spec --result fail)" "Next: /sdlc:handle-review 12"
+    assert_eq "$(next_line 13 --after verify-spec --result pass)" \
+        "Next: wait for review from @alice on PR #13, then run /sdlc:next 13"
+}
+
+test_after_handle_review() {
     pr 9 5 '{threads: [thread(false; "alice")]}'
     pr 10 6 '{requests: ["alice"], threads: [thread(false; "dev")]}'
     pr 11 7 '{threads: [thread(true; "alice")]}'
-    assert_eq "$(next_line 9 --after respond)" "Next: /sdlc:respond 9"
-    assert_eq "$(next_line 10 --after respond)" "Next: wait for review from @alice on PR #10, then run /sdlc:next 10"
-    assert_eq "$(next_line 11 --after respond)" "Next: /sdlc:review 11"
+    pr 12 - '{body: "Spec for #7", threads: [thread(true; "alice")]}'
+    assert_eq "$(next_line 9 --after handle-review)" "Next: /sdlc:handle-review 9"
+    assert_eq "$(next_line 10 --after handle-review)" "Next: wait for review from @alice on PR #10, then run /sdlc:next 10"
+    assert_eq "$(next_line 11 --after handle-review)" "Next: /sdlc:review 11"
+    assert_eq "$(next_line 12 --after handle-review)" "Next: /sdlc:verify-spec 12"
 }
 
 test_after_document() {
@@ -205,8 +243,8 @@ test_after_ship_pass() {
 
 test_after_ship_fail_names_the_gate() {
     pr 9 5
-    assert_gate "threads: fail - 1 unanswered: url" "Next: /sdlc:respond 9"
-    assert_gate "qa: fail - .sdlc/task/5/QA.md does not exist; run prove first" "Next: /sdlc:prove 5"
+    assert_gate "threads: fail - 1 unanswered: url" "Next: /sdlc:handle-review 9"
+    assert_gate "qa: fail - no Official QA comment found; run prove 9 first" "Next: /sdlc:prove 9"
     assert_gate "qa: fail - local HEAD a is not the PR head b" "Next: check out the head of PR #9, then run /sdlc:ship 9"
     assert_gate "checks: fail - failed: lint" "Next: fix the failed checks on PR #9 (failed: lint), then run /sdlc:ship 9"
     assert_gate "approval: fail - no approval from a person" \
@@ -253,16 +291,24 @@ test_route_pull_request_states() {
     pr 11 4 '{reviews: [review("APPROVED"; "alice"; "User")]}'
     pr 12 4 '{reviews: [review("COMMENTED"; "dev"; "User")], requests: ["alice"]}'
     pr 13 4 '{reviews: [review("COMMENTED"; "dev"; "User")]}'
+    pr 16 4 '{reviews: [review("COMMENTED"; "dev"; "User")], comments: [qa("pass")]}'
+    pr 17 - '{body: "Spec for #4"}'
+    pr 18 - '{files: [file(".sdlc/specs/4-task.md")], reviews: [review("COMMENTED"; "dev"; "User")]}'
+    pr 19 - '{body: "Spec for #4", files: [file("src/app.sh")]}'
     pr 14 - '{state: "CLOSED"}'
     assert_eq "$(next_line 4)" "Next: /sdlc:review 9"
-    assert_eq "$(next_line 10)" "Next: /sdlc:respond 10"
+    assert_eq "$(next_line 10)" "Next: /sdlc:handle-review 10"
     assert_eq "$(next_line 11)" "Next: /sdlc:ship 11"
     assert_eq "$(next_line 12)" "Next: wait for review from @alice on PR #12, then run /sdlc:next 12"
-    assert_eq "$(next_line 13)" "Next: /sdlc:document 4"
+    assert_eq "$(next_line 13)" "Next: /sdlc:prove 13"
+    assert_eq "$(next_line 16)" "Next: /sdlc:document 4"
+    assert_eq "$(next_line 17)" "Next: /sdlc:verify-spec 17"
+    assert_eq "$(next_line 18)" "Next: /sdlc:ship 18"
+    assert_eq "$(next_line 19)" "Next: /sdlc:review 19"
     assert_eq "$(next_line 14)" "Next: reopen PR #14 or open a new one, then run /sdlc:next 14"
 }
 
 test_bot_approval_is_not_a_person() {
-    pr 15 4 '{reviews: [review("APPROVED"; "ci-bot"; "Bot")]}'
+    pr 15 4 '{reviews: [review("APPROVED"; "ci-bot"; "Bot")], comments: [qa("pass")]}'
     assert_eq "$(next_line 15)" "Next: /sdlc:document 4"
 }

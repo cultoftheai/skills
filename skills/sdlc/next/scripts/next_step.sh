@@ -27,7 +27,9 @@ set -u
 
 HERE=$(dirname "$0")
 SETTINGS=.sdlc/settings.json
-SKILLS='setup frame slice shape build prove submit review respond document ship retro'
+SKILLS='setup frame design slice shape build prove submit review verify-spec handle-review document ship retro'
+DEFAULT_REVIEW_PREFIX=':robot:'
+DEFAULT_SPECS_PATH=.sdlc/specs
 TAB=$(printf '\t')
 EDIT='"<the edit in words>"'
 FIRST_REQUEST='"<your first request>"'
@@ -47,6 +49,8 @@ query($owner: String!, $name: String!, $number: Int!) {
       ... on PullRequest {
         number state body
         author { login }
+        files(first: 100) { nodes { path } }
+        comments(last: 100) { nodes { body } }
         closingIssuesReferences(first: 10) { nodes { number } }
         reviews(first: 100) { nodes { state author { __typename login } } }
         reviewRequests(first: 20) { nodes { requestedReviewer { __typename ... on User { login } } } }
@@ -63,6 +67,13 @@ JQ_DEFS='
   def open_pr: first((.closedByPullRequestsReferences.nodes // [])[] | select(.state == "OPEN") | .number) // null;
   def keyword_issue: (.body // "") | first(match("\\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\\s+#(\\d+)"; "i") | .captures[0].string | tonumber);
   def closing_issue: (.closingIssuesReferences.nodes // [])[0].number // keyword_issue // null;
+  def is_spec_pr:
+    [(.files.nodes // [])[].path] as $p
+    | if ($p | length) > 0 then all($p[]; startswith($specs))
+      else ((.body // "") | test("\\b(?:Spec|Design)\\s+for\\s+#\\d+"; "i")) end;
+  def has_official_qa_pass:
+    ([(.comments.nodes // [])[] | .body // "" | select(startswith($review_prefix + " [qa]"))] | last // "") as $c
+    | ($c | ltrimstr($review_prefix + " [qa]") | ascii_downcase | split("\n")[0] | gsub("^\\s+|\\s+$"; "") | split(" ")[0] // "") == "pass";
   def author: .author.login // null;
   def threads_needing_reply: author as $a | [(.reviewThreads.nodes // [])[] | select((.isResolved | not) and (.comments.nodes | last | .author.login) != $a)];
   def reviews: .reviews.nodes // [];
@@ -106,14 +117,33 @@ starts_with() {
     return 1
 }
 
+# Read review.prefix and normalized specs.path from .sdlc/settings.json when present.
+read_settings() {
+    REVIEW_PREFIX=$DEFAULT_REVIEW_PREFIX
+    specs=$DEFAULT_SPECS_PATH
+    if [ -f "$SETTINGS" ] && command -v jq >/dev/null 2>&1; then
+        val=$(jq -r '.review.prefix // empty' "$SETTINGS" 2>/dev/null)
+        [ -z "$val" ] || REVIEW_PREFIX=$val
+        val=$(jq -r '.specs.path // empty' "$SETTINGS" 2>/dev/null)
+        [ -z "$val" ] || specs=$val
+    fi
+    while [ "${specs#./}" != "$specs" ]; do
+        specs=${specs#./}
+    done
+    while [ "${specs%/}" != "$specs" ] && [ "$specs" != / ]; do
+        specs=${specs%/}
+    done
+    SPECS_PREFIX="$specs/"
+}
+
 # Print the value of a jq expression on the item JSON, with the definitions above. Prints nothing for null.
 get() {
-    printf '%s\n' "$1" | jq -r "$JQ_DEFS ($2) // empty"
+    printf '%s\n' "$1" | jq -r --arg review_prefix "$REVIEW_PREFIX" --arg specs "$SPECS_PREFIX" "$JQ_DEFS ($2) // empty"
 }
 
 # Exit 0 when a jq expression on the item JSON is true.
 holds() {
-    printf '%s\n' "$1" | jq -e "$JQ_DEFS $2" > /dev/null
+    printf '%s\n' "$1" | jq -e --arg review_prefix "$REVIEW_PREFIX" --arg specs "$SPECS_PREFIX" "$JQ_DEFS $2" > /dev/null
 }
 
 # Print a step that runs a skill with its arguments.
@@ -228,7 +258,7 @@ route_epic() {
     fi
 }
 
-# Print the next step for a pull request, from its state, reviews and threads.
+# Print the next step for a pull request, from its state, reviews, threads and Official QA.
 route_pr() {
     pr_number=$(get "$1" .number)
     task=$(get "$1" closing_issue)
@@ -238,13 +268,21 @@ route_pr() {
     elif [ "$pr_state" = CLOSED ]; then
         wait_then "reopen PR #$pr_number or open a new one" "next ${task:-$pr_number}"
     elif holds "$1" 'threads_needing_reply | length > 0'; then
-        skill respond "$pr_number"
+        skill handle-review "$pr_number"
     elif holds "$1" 'reviews | length == 0'; then
-        skill review "$pr_number"
+        if holds "$1" is_spec_pr; then
+            skill verify-spec "$pr_number"
+        else
+            skill review "$pr_number"
+        fi
     elif holds "$1" has_human_approval; then
         skill ship "$pr_number"
     elif holds "$1" 'requested_reviewers | length > 0'; then
         wait_for_review "$1"
+    elif holds "$1" is_spec_pr; then
+        skill ship "$pr_number"
+    elif ! holds "$1" has_official_qa_pass; then
+        skill prove "$pr_number"
     else
         document_or_ship "$1"
     fi
@@ -316,13 +354,29 @@ after_slice() {
     fi
 }
 
-# shape: a spec goes to build and a design to slice; a stop re-frames the L story or routes the issue.
-after_shape() {
+# design: a shaped L story or downgraded M story goes to slice; a ready L story waits on its Design PR.
+after_design() {
     issue=$(item "$REF") || exit 1
-    if [ -z "$FAILED" ] && [ "$(get "$issue" size)" = L ]; then
+    if [ -z "$FAILED" ] && [ "$(get "$issue" stage)" = shaped ]; then
+        skill slice "$REF"
+    elif [ -z "$FAILED" ] && [ "$(get "$issue" size)" = M ]; then
         skill slice "$REF"
     elif [ -z "$FAILED" ]; then
+        wait_then "verify and merge the open Design PR for #$REF" "next $REF"
+    else
+        route_issue "$issue"
+    fi
+}
+
+# shape: a shaped spec goes to build and a shaped design to slice; a ready task waits on its Spec PR; a stop re-frames the L story or routes the issue.
+after_shape() {
+    issue=$(item "$REF") || exit 1
+    if [ -z "$FAILED" ] && [ "$(get "$issue" stage)" = shaped ] && [ "$(get "$issue" size)" = L ]; then
+        skill slice "$REF"
+    elif [ -z "$FAILED" ] && [ "$(get "$issue" stage)" = shaped ]; then
         skill build "$REF"
+    elif [ -z "$FAILED" ]; then
+        wait_then "verify and merge the open Spec PR for #$REF" "next $REF"
     elif under_l_story "$issue"; then
         skill frame "$(get "$issue" .parent.number)"
     else
@@ -348,8 +402,20 @@ after_build() {
     esac
 }
 
-# prove: a pass goes to submit, a fail back to build.
+# prove: local goes to submit or back to build; Official PR QA goes to document/ship or back to build.
 after_prove() {
+    if [ -n "$REF" ]; then
+        proved=$(item "$REF") || exit 1
+        if [ "$(get "$proved" .__typename)" = PullRequest ]; then
+            if [ -n "$FAILED" ]; then
+                task=$(get "$proved" closing_issue)
+                skill build "${task:-$EDIT}"
+            else
+                document_or_ship "$proved"
+            fi
+            return
+        fi
+    fi
     if [ -n "$FAILED" ]; then
         skill build "${REF:-$EDIT}"
     else
@@ -366,7 +432,7 @@ after_submit() {
     fi
 }
 
-# review: findings go to respond, a clean PR to document; a spec with findings goes back to its author.
+# review: findings go to handle-review, a clean Code PR to Official prove (or document/ship if QA passed); a spec with findings goes back to its author.
 after_review() {
     reviewed=$(item "$REF") || exit 1
     if [ "$(get "$reviewed" .__typename)" = Issue ]; then
@@ -377,19 +443,37 @@ after_review() {
             printf '%s\n' "$step"
         fi
     elif [ -n "$FAILED" ]; then
-        skill respond "$REF"
+        skill handle-review "$REF"
+    elif ! holds "$reviewed" has_official_qa_pass; then
+        skill prove "$REF"
     else
         document_or_ship "$reviewed"
     fi
 }
 
-# respond: retry unanswered threads, wait for a requested person, or review again.
-after_respond() {
+# verify-spec: findings go to handle-review, a clean Spec/Design PR waits for a reviewer or goes to ship.
+after_verify_spec() {
+    verified=$(item "$REF") || exit 1
+    if [ -n "$FAILED" ]; then
+        skill handle-review "$REF"
+    elif holds "$verified" has_human_approval; then
+        skill ship "$REF"
+    elif holds "$verified" 'requested_reviewers | length > 0'; then
+        wait_for_review "$verified"
+    else
+        skill ship "$REF"
+    fi
+}
+
+# handle-review: retry unanswered threads, wait for a requested person, or re-verify/re-review.
+after_handle_review() {
     pull=$(item "$REF") || exit 1
     if holds "$pull" 'threads_needing_reply | length > 0'; then
-        skill respond "$REF"
+        skill handle-review "$REF"
     elif holds "$pull" 'requested_reviewers | length > 0'; then
         wait_for_review "$pull"
+    elif holds "$pull" is_spec_pr; then
+        skill verify-spec "$REF"
     else
         skill review "$REF"
     fi
@@ -416,15 +500,14 @@ after_ship() {
 # Print the step that clears the first failed gate in the ship_gates.sh output, or ship again when none failed.
 gate_step() {
     pr_number=$(get "$1" .number)
-    task=$(get "$1" closing_issue)
     qa=$(gate_detail "$2" qa)
     checks=$(gate_detail "$2" checks)
     if gate_failed "$2" threads; then
-        skill respond "$pr_number"
+        skill handle-review "$pr_number"
     elif gate_failed "$2" qa && starts_with "$qa" "local HEAD"; then
         wait_then "check out the head of PR #$pr_number" "ship $pr_number"
     elif gate_failed "$2" qa; then
-        skill prove ${task:+"$task"}
+        skill prove "$pr_number"
     elif gate_failed "$2" checks && starts_with "$checks" failed; then
         wait_then "fix the failed checks on PR #$pr_number ($checks)" "ship $pr_number"
     elif gate_failed "$2" approval; then
@@ -483,7 +566,8 @@ parse_ref() {
 # Print the next step for the parsed arguments.
 decide() {
     if [ -n "$AFTER" ]; then
-        "after_$AFTER"
+        after_fn=$(printf '%s\n' "$AFTER" | tr '-' '_')
+        "after_$after_fn"
     elif [ -n "$REF" ]; then
         route "$REF"
     else
@@ -501,6 +585,7 @@ if [ ! -f "$SETTINGS" ]; then
     printf 'Next: %s\n' "$(render setup)"
     exit 0
 fi
+read_settings
 ERROR_FILE=$(mktemp)
 trap 'rm -f "$ERROR_FILE"' EXIT
 if step=$(decide); then

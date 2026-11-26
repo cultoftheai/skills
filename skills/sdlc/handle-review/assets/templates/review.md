@@ -1,4 +1,4 @@
-# Review of #<pr>
+# Review triage of #<pr>
 
 ## Round <n>, <ISO date>
 
