@@ -208,6 +208,25 @@ test_after_review_of_a_spec() {
         "Next: apply the review findings to the spec or design of #5, then run /sdlc:build 5"
 }
 
+test_after_review_of_a_local_review() {
+    issue 21 in-progress '{parent: 20}'
+    assert_eq "$(next_line 21 --after review --result pass)" "Next: /sdlc:prove 21"
+    assert_eq "$(next_line 21 --after review --result fail)" \
+        "Next: settle the findings left in .sdlc/work/21/self-review.md, then run /sdlc:build 21"
+    assert_eq "$(next_line 21 --after review --result fail --auto)" \
+        "Next: settle the findings left in .sdlc/work/21/self-review.md, then run /sdlc:build 21 --auto"
+    assert_eq "$(next_line - --after review --result pass)" "Next: /sdlc:prove"
+    assert_eq "$(next_line - --after review --result fail)" \
+        'Next: settle the findings left in .sdlc/work/xs/self-review.md, then run /sdlc:build "<the edit in words>"'
+    assert_eq "$(next_line - --after review --result fail --harness codex)" \
+        'Next: settle the findings left in .sdlc/work/xs/self-review.md, then run $build "<the edit in words>"'
+    printf '{"work":{"path":"./tmp/work/"}}\n' > .sdlc/settings.json
+    assert_eq "$(next_line 21 --after review --result fail)" \
+        "Next: settle the findings left in tmp/work/21/self-review.md, then run /sdlc:build 21"
+    assert_eq "$(next_line - --after review --result fail)" \
+        'Next: settle the findings left in tmp/work/xs/self-review.md, then run /sdlc:build "<the edit in words>"'
+}
+
 test_after_verify_spec() {
     pr 12 - '{body: "Spec for #5"}'
     pr 13 - '{body: "Design for #87", requests: ["alice"]}'

@@ -8,11 +8,13 @@ The folder is `<work.path>/<task>/` (fallback `.sdlc/work/<task>/`), or `<work.p
 4. **Decide** - Without `--auto`, show every finding in one table: number, severity, location, finding, and recommendation. Ask the person to choose `fix` or `skip` for each row, or to take the recommendations. A `stop` row stays `stop`. With `--auto`, take the recommendations.
 5. **Record** - Write `<folder>/self-review.md` in the format below without committing it. With no finding, write it with no row and `Status: passed`, and finish local review. Otherwise set `Status` to `open`.
 6. **Stop?** - If any row is `stop`, make no fix, set `Status` to `stopped`, name the decision in the report, and stop for review.
-7. **Fix** - Apply each `fix` row with an empty `Fix` column as one unit, as step 4 of `build` says, and write the short commit SHA in the `Fix` column of `self-review.md`. After each unit, run the diff check of step 5 of `build`. If the diff passes `sizing.review_limit`, set `Status` to `re-size` and stop for a re-size as step 5 says.
+7. **Fix** - Apply each `fix` row with an empty `Fix` column as one unit, as step 4 of `build` says, and write the short commit SHA in the `Fix` column of `self-review.md`. After each unit, run the diff check of step 5 of `build`. If the diff passes `sizing.review_limit`, set `Status` to `re-size` and stop for a re-size as step 5 says (not as a review stop).
 8. **Verify** - With at least one `fix` row, follow `orchestrator` to start one fresh subagent that runs `review <ref> --local --verify`. Write each result in the `Verify` column, add each new finding as a new row with Axis `verify`, its recommendation from step 3, and a Decision (`skip` when its recommendation is `skip`, `stop` otherwise), and write the short head SHA after `Verified:`.
 9. **Result** - If a `fix` row is not `fixed`, or a row that verify added has the Decision `stop`, set `Status` to `stopped`, name them in the report, and stop for review. Otherwise set `Status` to `passed` and continue to step 8 of `build`.
 
-Run one review and one verify per round. To settle `self-review.md` after a stop, a person changes the Decision of each `stop` row to `fix` or `skip` (or clears `Fix` and `Verify` on an unfixed `fix` row) and runs `build` again.
+A review stop hands off through step 9 of `build` (`sh .sdlc/scripts/next_step.sh <ref> --after review --result fail`, with `--auto` when passed). Run one review and one verify per round.
+
+To settle `self-review.md` after a stop, a person changes the Decision of each `stop` row to `fix` or `skip`. For each row that is not `fixed` after a verify, they change the Decision to `skip`, or keep `fix` and clear its `Fix` and `Verify` to try again. Then they run `build` again.
 
 ## self-review.md
 

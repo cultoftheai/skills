@@ -30,6 +30,7 @@ SETTINGS=.sdlc/settings.json
 SKILLS='setup frame design slice shape build prove submit review verify-spec handle-review document ship retro'
 DEFAULT_REVIEW_PREFIX=':robot:'
 DEFAULT_SPECS_PATH=.sdlc/specs
+DEFAULT_WORK_PATH=.sdlc/work
 TAB=$(printf '\t')
 EDIT='"<the edit in words>"'
 FIRST_REQUEST='"<your first request>"'
@@ -117,23 +118,37 @@ starts_with() {
     return 1
 }
 
-# Read review.prefix and normalized specs.path from .sdlc/settings.json when present.
+# Print a directory path with leading "./" removed and a single trailing "/".
+normalize_prefix() {
+    dir=$1
+    while [ "${dir#./}" != "$dir" ]; do
+        dir=${dir#./}
+    done
+    while [ "${dir%/}" != "$dir" ] && [ "$dir" != / ]; do
+        dir=${dir%/}
+    done
+    if [ "$dir" = / ]; then
+        printf '/\n'
+    else
+        printf '%s/\n' "$dir"
+    fi
+}
+
+# Read review.prefix, normalized specs.path, and normalized work.path from .sdlc/settings.json when present.
 read_settings() {
     REVIEW_PREFIX=$DEFAULT_REVIEW_PREFIX
     specs=$DEFAULT_SPECS_PATH
+    work=$DEFAULT_WORK_PATH
     if [ -f "$SETTINGS" ] && command -v jq >/dev/null 2>&1; then
         val=$(jq -r '.review.prefix // empty' "$SETTINGS" 2>/dev/null)
         [ -z "$val" ] || REVIEW_PREFIX=$val
         val=$(jq -r '.specs.path // empty' "$SETTINGS" 2>/dev/null)
         [ -z "$val" ] || specs=$val
+        val=$(jq -r '.work.path // empty' "$SETTINGS" 2>/dev/null)
+        [ -z "$val" ] || work=$val
     fi
-    while [ "${specs#./}" != "$specs" ]; do
-        specs=${specs#./}
-    done
-    while [ "${specs%/}" != "$specs" ] && [ "$specs" != / ]; do
-        specs=${specs%/}
-    done
-    SPECS_PREFIX="$specs/"
+    SPECS_PREFIX=$(normalize_prefix "$specs")
+    WORK_PREFIX=$(normalize_prefix "$work")
 }
 
 # Print the value of a jq expression on the item JSON, with the definitions above. Prints nothing for null.
@@ -432,10 +447,16 @@ after_submit() {
     fi
 }
 
-# review: findings go to handle-review, a clean Code PR to Official prove (or document/ship if QA passed); a spec with findings goes back to its author.
+# review: findings go to handle-review, a clean Code PR to Official prove (or document/ship if QA passed); a spec with findings goes back to its author; a local review goes to prove or back to build.
 after_review() {
+    if [ -z "$REF" ]; then
+        after_local_review "$EDIT" "${WORK_PREFIX}xs/self-review.md"
+        return
+    fi
     reviewed=$(item "$REF") || exit 1
-    if [ "$(get "$reviewed" .__typename)" = Issue ]; then
+    if [ "$(get "$reviewed" .__typename)" = Issue ] && [ "$(get "$reviewed" stage)" = in-progress ]; then
+        after_local_review "$REF" "${WORK_PREFIX}$REF/self-review.md"
+    elif [ "$(get "$reviewed" .__typename)" = Issue ]; then
         step=$(route_issue "$reviewed") || exit 1
         if [ -n "$FAILED" ]; then
             wait_then "apply the review findings to the spec or design of #$REF" "$step"
@@ -448,6 +469,15 @@ after_review() {
         skill prove "$REF"
     else
         document_or_ship "$reviewed"
+    fi
+}
+
+# Print the step after a local review that build stopped on or passed: prove, or build again once the findings in self-review.md are settled.
+after_local_review() {
+    if [ -n "$FAILED" ]; then
+        wait_then "settle the findings left in $2" "build $1"
+    else
+        skill prove ${REF:+"$REF"}
     fi
 }
 
