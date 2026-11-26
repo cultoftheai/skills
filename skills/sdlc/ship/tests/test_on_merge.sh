@@ -1,9 +1,9 @@
 # Tests for on_merge.sh. gh and stage.sh are faked.
 
-# Make the fake gh answer "gh pr view" with the state and the closed issues.
+# Make the fake gh answer "gh pr view" with the state, closed issues, and optional body.
 pr() {
-    fake_gh "pr view" 0 "$(jq -cn --arg state "$1" --arg issues "${2:-}" \
-        '{state: $state, closingIssuesReferences: [$issues | split(" ")[] | select(. != "") | {number: tonumber}]}')"
+    fake_gh "pr view" 0 "$(jq -cn --arg state "$1" --arg issues "${2:-}" --arg body "${3:-}" \
+        '{state: $state, body: $body, closingIssuesReferences: [$issues | split(" ")[] | select(. != "") | {number: tonumber}]}')"
 }
 
 test_sets_done_on_the_closed_issue() {
@@ -57,4 +57,31 @@ test_bad_argument_fails() {
     assert_eq $? 1
     "$SH" "$ON_MERGE" 2> /dev/null
     assert_eq $? 1
+}
+
+test_sets_shaped_on_merged_spec_or_design_pr() {
+    pr MERGED "" "Spec for #95"
+    output=$("$SH" "$ON_MERGE" 12) || exit 1
+    assert_eq "$output" "Set shaped on #95."
+    assert_eq "$(script_calls stage.sh | cut -d' ' -f2-)" "95 shaped"
+
+    : > "$TEST_TMP/scripts.log"
+    pr MERGED "" "Design for #87"
+    output=$("$SH" "$ON_MERGE" 13) || exit 1
+    assert_eq "$output" "Set shaped on #87."
+    assert_eq "$(script_calls stage.sh | cut -d' ' -f2-)" "87 shaped"
+}
+
+test_closing_issues_take_precedence_over_spec_reference() {
+    pr MERGED 7 "Implements Spec for #7"
+    output=$("$SH" "$ON_MERGE" 12) || exit 1
+    assert_eq "$output" "Set done on #7."
+    assert_eq "$(script_calls stage.sh | cut -d' ' -f2-)" "7 done"
+}
+
+test_deduplicates_spec_references() {
+    pr MERGED "" "Spec for #5 (duplicate spec for #5)"
+    output=$("$SH" "$ON_MERGE" 12) || exit 1
+    assert_eq "$output" "Set shaped on #5."
+    assert_eq "$(script_calls stage.sh | cut -d' ' -f2-)" "5 shaped"
 }

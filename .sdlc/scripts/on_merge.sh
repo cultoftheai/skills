@@ -1,5 +1,5 @@
 #!/bin/sh
-# Set the stage to done for each issue a merged PR closes.
+# Set the stage to done for each issue a merged PR closes, or shaped for a merged Spec/Design PR.
 #
 # Usage: on_merge.sh <pr>
 #
@@ -25,15 +25,18 @@ fail() {
     exit 1
 }
 
-# Print the state of the PR, then the number of each issue it closes, one per line.
+# Print the PR state, space-separated closed issues, and space-separated Spec/Design issues, one per line.
 pr_summary() {
-    err=$(gh pr view "$1" --json state,closingIssuesReferences \
-        --jq '.state, .closingIssuesReferences[].number' 2>&1 >&4) || fail "cannot read PR #$1: $err"
+    err=$(gh pr view "$1" --json state,closingIssuesReferences,body \
+        --jq '.state,
+              ([(.closingIssuesReferences // [])[].number | tostring] | join(" ")),
+              ([((.body // "") | scan("\\b(?:Spec|Design)\\s+for\\s+#(\\d+)\\b"; "i"))[0]]
+                | reduce .[] as $id ([]; if index($id) then . else . + [$id] end) | join(" "))' 2>&1 >&4) || fail "cannot read PR #$1: $err"
 } 4>&1
 
-# Set done on the issue. Print the error and exit 1 when stage.sh fails.
-finish_issue() {
-    output=$(sh "$HERE/stage.sh" "$1" done 2>&1) || {
+# Set stage on the issue. Print the error and exit 1 when stage.sh fails.
+set_stage() {
+    output=$(sh "$HERE/stage.sh" "$1" "$2" 2>&1) || {
         printf '#%s: stage.sh failed: %s\n' "$1" "$output"
         return 1
     }
@@ -41,7 +44,7 @@ finish_issue() {
 
 # Print the issue numbers of the list as "#7, #8".
 issue_list() {
-    printf '%s\n' "$1" | awk '{ printf "%s#%s", (NR > 1 ? ", " : ""), $0 } END { print "" }'
+    printf '%s\n' $1 | awk '{ printf "%s#%s", (NR > 1 ? ", " : ""), $0 } END { print "" }'
 }
 
 if [ $# -ne 1 ]; then
@@ -52,16 +55,27 @@ case "$1" in
     '' | *[!0-9]*) usage; exit 1 ;;
 esac
 summary=$(pr_summary "$1") || exit 1
-state=$(printf '%s\n' "$summary" | head -n 1)
-issues=$(printf '%s\n' "$summary" | tail -n +2)
+{
+    IFS= read -r state
+    IFS= read -r issues
+    IFS= read -r spec_issues
+} <<EOF
+$summary
+EOF
 [ "$state" = MERGED ] || fail "PR #$1 is $state, not MERGED"
-if [ -z "$issues" ]; then
+if [ -n "$issues" ]; then
+    stage=done
+    targets=$issues
+elif [ -n "$spec_issues" ]; then
+    stage=shaped
+    targets=$spec_issues
+else
     printf 'PR #%s closes no issue. Nothing to do.\n' "$1"
     exit 0
 fi
 failed=0
-for issue in $issues; do
-    finish_issue "$issue" || failed=1
+for issue in $targets; do
+    set_stage "$issue" "$stage" || failed=1
 done
 [ "$failed" -eq 0 ] || exit 1
-printf 'Set done on %s.\n' "$(issue_list "$issues")"
+printf 'Set %s on %s.\n' "$stage" "$(issue_list "$targets")"
