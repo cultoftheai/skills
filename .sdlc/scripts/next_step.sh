@@ -67,8 +67,10 @@ JQ_DEFS='
   def open_pr: first((.closedByPullRequestsReferences.nodes // [])[] | select(.state == "OPEN") | .number) // null;
   def keyword_issue: (.body // "") | first(match("\\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\\s+#(\\d+)"; "i") | .captures[0].string | tonumber);
   def closing_issue: (.closingIssuesReferences.nodes // [])[0].number // keyword_issue // null;
-  def is_spec_pr: ((.body // "") | test("\\b(?:Spec|Design)\\s+for\\s+#\\d+"; "i"))
-    or ([(.files.nodes // [])[].path] | length > 0 and all(.[]; startswith($specs)));
+  def is_spec_pr:
+    [(.files.nodes // [])[].path] as $p
+    | if ($p | length) > 0 then all($p[]; startswith($specs))
+      else ((.body // "") | test("\\b(?:Spec|Design)\\s+for\\s+#\\d+"; "i")) end;
   def has_official_qa_pass:
     ([(.comments.nodes // [])[] | .body // "" | select(startswith($review_prefix + " [qa]"))] | last // "") as $c
     | ($c | ltrimstr($review_prefix + " [qa]") | ascii_downcase | split("\n")[0] | gsub("^\\s+|\\s+$"; "") | split(" ")[0] // "") == "pass";
@@ -352,18 +354,29 @@ after_slice() {
     fi
 }
 
-# design: route the story after design.
+# design: a shaped L story or downgraded M story goes to slice; a ready L story waits on its Design PR.
 after_design() {
-    after_shape
-}
-
-# shape: a spec goes to build and a design to slice; a stop re-frames the L story or routes the issue.
-after_shape() {
     issue=$(item "$REF") || exit 1
-    if [ -z "$FAILED" ] && [ "$(get "$issue" size)" = L ]; then
+    if [ -z "$FAILED" ] && [ "$(get "$issue" stage)" = shaped ]; then
+        skill slice "$REF"
+    elif [ -z "$FAILED" ] && [ "$(get "$issue" size)" = M ]; then
         skill slice "$REF"
     elif [ -z "$FAILED" ]; then
+        wait_then "verify and merge the open Design PR for #$REF" "next $REF"
+    else
+        route_issue "$issue"
+    fi
+}
+
+# shape: a shaped spec goes to build and a shaped design to slice; a ready task waits on its Spec PR; a stop re-frames the L story or routes the issue.
+after_shape() {
+    issue=$(item "$REF") || exit 1
+    if [ -z "$FAILED" ] && [ "$(get "$issue" stage)" = shaped ] && [ "$(get "$issue" size)" = L ]; then
+        skill slice "$REF"
+    elif [ -z "$FAILED" ] && [ "$(get "$issue" stage)" = shaped ]; then
         skill build "$REF"
+    elif [ -z "$FAILED" ]; then
+        wait_then "verify and merge the open Spec PR for #$REF" "next $REF"
     elif under_l_story "$issue"; then
         skill frame "$(get "$issue" .parent.number)"
     else

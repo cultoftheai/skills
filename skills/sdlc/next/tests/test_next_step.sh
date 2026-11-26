@@ -133,11 +133,22 @@ test_after_slice_stop() {
     assert_eq "$(next_line 22 --after slice --result fail)" "Next: get story #22 approved and labelled ready, then run /sdlc:slice 22"
 }
 
+test_after_design() {
+    issue 20 ready,size:L
+    issue 21 shaped,size:L
+    issue 22 ready,size:M
+    assert_eq "$(next_line 20 --after design)" "Next: verify and merge the open Design PR for #20, then run /sdlc:next 20"
+    assert_eq "$(next_line 21 --after design)" "Next: /sdlc:slice 21"
+    assert_eq "$(next_line 22 --after design)" "Next: /sdlc:slice 22"
+}
+
 test_after_shape_pass() {
     issue 21 shaped '{parent: 20}'
     issue 20 shaped,size:L
+    issue 23 ready '{parent: 20}'
     assert_eq "$(next_line 21 --after shape)" "Next: /sdlc:build 21"
     assert_eq "$(next_line 20 --after shape)" "Next: /sdlc:slice 20"
+    assert_eq "$(next_line 23 --after shape)" "Next: verify and merge the open Spec PR for #23, then run /sdlc:next 23"
 }
 
 test_after_shape_resize() {
@@ -283,6 +294,7 @@ test_route_pull_request_states() {
     pr 16 4 '{reviews: [review("COMMENTED"; "dev"; "User")], comments: [qa("pass")]}'
     pr 17 - '{body: "Spec for #4"}'
     pr 18 - '{files: [file(".sdlc/specs/4-task.md")], reviews: [review("COMMENTED"; "dev"; "User")]}'
+    pr 19 - '{body: "Spec for #4", files: [file("src/app.sh")]}'
     pr 14 - '{state: "CLOSED"}'
     assert_eq "$(next_line 4)" "Next: /sdlc:review 9"
     assert_eq "$(next_line 10)" "Next: /sdlc:handle-review 10"
@@ -292,6 +304,7 @@ test_route_pull_request_states() {
     assert_eq "$(next_line 16)" "Next: /sdlc:document 4"
     assert_eq "$(next_line 17)" "Next: /sdlc:verify-spec 17"
     assert_eq "$(next_line 18)" "Next: /sdlc:ship 18"
+    assert_eq "$(next_line 19)" "Next: /sdlc:review 19"
     assert_eq "$(next_line 14)" "Next: reopen PR #14 or open a new one, then run /sdlc:next 14"
 }
 
