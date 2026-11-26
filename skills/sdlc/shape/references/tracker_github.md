@@ -8,6 +8,10 @@
 
 `gh issue comment <issue> --body-file <file>`. Update your own last comment with `--edit-last`.
 
+## Open Spec PR
+
+`gh pr create --base <default_branch> --title "Spec for #<issue>: <title>" --body-file <file>` (include `Spec for #<issue>`, never `Closes #<issue>`).
+
 ## Size
 
 `sh .sdlc/scripts/size.sh <issue> <XS|S|M|L|XL>`
