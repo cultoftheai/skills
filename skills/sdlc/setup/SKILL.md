@@ -1,7 +1,7 @@
 ---
 name: setup
 description: Use when a repository has no .sdlc/settings.json, when an SDLC skill ends with Next /setup, when the SDLC settings need new keys, or when the team moves to another tracker. Detects the default branch, tracker, guide files, risk paths and search tools, asks seven short groups of questions, then validates and writes the settings file. After that it offers to create the stage and size labels and add the scripts and templates. Triggers - set up sdlc, configure the sdlc skills, create the sdlc settings, run setup again, we are moving from Jira to Linear. Not for adding labels to one issue or for changing one setting by hand.
-argument-hint: [--auto]
+argument-hint: "[--auto]"
 ---
 
 ## Dependencies
@@ -48,7 +48,7 @@ flowchart TD
 5. **Ask the groups** - Ask the seven groups in `references/walkthrough.md` in order, one group for each message. Show the detected value or the schema default for each key. Ask only what detection could not answer, and always ask `issue.tracker` unless step 3 kept it. Skip a group that has no key left to ask.
 6. **Write and validate** - Show the finished file and get a yes. Write `.sdlc/settings.json`, then run `validate_settings.sh` on it. If it prints errors, fix each named key and validate again.
 7. **Offer labels** - Find the missing labels as `references/trackers.md` says for `issue.tracker`. If any are missing, ask yes or no. On yes, create them as it says.
-8. **Offer scripts** - Ask yes or no. On yes, run `sh <skill-dir>/scripts/install.sh <repo-root>`. If it prints `kept` lines, list those templates and ask whether to keep them or override them. On override, run it again with `--override`.
+8. **Offer scripts** - Ask yes or no. On yes, run `sh <skill-dir>/scripts/install.sh <repo-root>` to install the scripts and templates, create the specs, archive and work folders, and update `.sdlc/.gitignore`. If it prints `kept` lines, list those templates and ask whether to keep them or override them. On override, run it again with `--override`.
 9. **Report** - Give the report from the Output section. If `.sdlc/scripts/next_step.sh` exists, run `sh .sdlc/scripts/next_step.sh - --after setup`, with `--auto` when it was passed, and print its output as the last line. If not, read `references/harness.md` and print the fallback `Next:` line for the current harness.
 
 ## Rules
@@ -61,5 +61,5 @@ flowchart TD
 
 ## Output
 
-- `.sdlc/settings.json`, and, when accepted, the labels, `.sdlc/scripts/` and `.sdlc/templates/`.
+- `.sdlc/settings.json`, and, when accepted, the labels, `.sdlc/scripts/`, `.sdlc/templates/`, the specs, archive and work folders, and `.sdlc/.gitignore`.
 - A report: each prerequisite and its result (Git repo, `gh` login, tracker, whether a tool for a Jira or Linear tracker is connected, and whether the `research.engine` tool is connected), each key as kept, detected, default or chosen, each offer as done, declined, left to do or not available for the tracker, and the `Next:` line last.

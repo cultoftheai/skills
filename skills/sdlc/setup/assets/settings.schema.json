@@ -9,7 +9,8 @@
     "guides",
     "templates",
     "issue",
-    "task",
+    "specs",
+    "work",
     "spec",
     "review",
     "retro",
@@ -123,7 +124,7 @@
           "type": "string",
           "minLength": 1,
           "default": ".sdlc/templates/retro.md",
-          "description": "The template of the RETRO.md of a task. A skill uses its own copy when the file does not exist."
+          "description": "The template of the retro.md of a task. A skill uses its own copy when the file does not exist."
         }
       }
     },
@@ -308,24 +309,59 @@
         }
       }
     },
-    "task": {
+    "specs": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "path",
-        "keep"
+        "archive_path",
+        "delivery",
+        "on_ship"
       ],
       "properties": {
         "path": {
           "type": "string",
           "minLength": 1,
-          "default": ".sdlc/task",
-          "description": "Root of the task folders."
+          "default": ".sdlc/specs",
+          "description": "Root of committed specs and designs."
         },
-        "keep": {
-          "type": "boolean",
-          "default": true,
-          "description": "Keep the task folder after merge."
+        "archive_path": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/specs/archived",
+          "description": "Folder for specs archived on ship."
+        },
+        "delivery": {
+          "enum": [
+            "pr",
+            "direct"
+          ],
+          "default": "pr",
+          "description": "How specs are delivered: pr opens a Spec PR, direct writes directly."
+        },
+        "on_ship": {
+          "enum": [
+            "archive",
+            "delete",
+            "keep"
+          ],
+          "default": "archive",
+          "description": "What ship does to a task spec on merge."
+        }
+      }
+    },
+    "work": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "default": ".sdlc/work",
+          "description": "Gitignored folder for local working files."
         }
       }
     },
@@ -348,11 +384,12 @@
         },
         "review": {
           "enum": [
+            "pr",
             "auto",
             "manual",
             "off"
           ],
-          "default": "manual",
+          "default": "pr",
           "description": "Whether a spec is reviewed before the build."
         }
       }

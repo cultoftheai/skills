@@ -1,7 +1,7 @@
 ---
 name: next
 description: Use when the user wants the SDLC flow to move on without naming the skill, or to run it until a gate or a hard stop. Asks the next-step script where an issue or PR stands, runs the skill it names in a fresh subagent, and repeats with --run or --auto. Triggers - next, what is next, continue this issue, run the flow, keep going. Not for running one named skill, which the user types directly.
-argument-hint: [issue|pr] [--run] [--auto]
+argument-hint: "[issue|pr] [--run] [--auto]"
 ---
 
 ## Dependencies
