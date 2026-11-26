@@ -10,7 +10,7 @@ Rules for each part of a house-format skill. `scripts/lint_skill.py` checks the 
   - Use this structure: `Use when <situation>. <What the skill does>. Triggers - <phrase>, <phrase>. Not for <case>.`
   - Use the words a user types, for example "fix review feedback", not "remediate".
   - If a similar skill exists, write the difference in the "Not for" part.
-- **argument-hint** [Optional] - Shows the args and flags in the slash-command menu, for example `<pr-number> [--auto]`. Add it when the skill has Args or Flags.
+- **argument-hint** [Optional] - Shows the args and flags in the slash-command menu, for example `"<pr-number> [--auto]"`. Add it when the skill has Args or Flags. Put the value in double quotes. A bare value that starts with `[` is not valid YAML, and strict parsers (Antigravity, Codex) then skip the whole skill. **(lint)**
 - **allowed-tools** [Optional] - Tools the skill can use without a permission prompt. Add it only when the user asks for it.
 - **disable-model-invocation** [Optional] - Set to `true` when only the user may start the skill, for example a skill that deploys or deletes.
 - **type** [Optional] - Set to `principle` for a skill that holds judgment and has no flow of its own. A principle has only the Dependencies and Rules sections, and Rules is required. **(lint)**

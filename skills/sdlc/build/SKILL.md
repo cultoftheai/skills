@@ -1,7 +1,7 @@
 ---
 name: build
 description: Use when a shaped task is ready to be coded from its SPEC.md, or when an XS change (one obvious edit, no ticket) must be made. Names the data shape first, works test-first where a seam exists, commits in small units that each end in a passing check, and stops for a re-size when the diff outgrows the review limit or the spec does not cover a decision. Triggers - build this task, implement the spec, start coding, make this small fix. Not for writing the spec or for verifying the running app.
-argument-hint: <task|xs-edit> [--auto]
+argument-hint: "<task|xs-edit> [--auto]"
 ---
 
 ## Dependencies

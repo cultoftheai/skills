@@ -1,7 +1,7 @@
 ---
 name: retro
 description: Use when a task has shipped and the user wants to learn from it, or wants a periodic check of the lessons so far. Finds corrections that repeat in the chats and review threads of a task and proposes each one as a rule in the cheapest form, such as a lint rule, a test or a guide line. Triggers - retro, retrospective, lessons learned, what went wrong, repeated corrections. Not for reviewing code or a pull request.
-argument-hint: [task] [--repo] [--auto]
+argument-hint: "[task] [--repo] [--auto]"
 ---
 
 ## Dependencies

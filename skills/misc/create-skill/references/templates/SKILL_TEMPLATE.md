@@ -13,7 +13,7 @@ Copy the block below and replace each `{{...}}` placeholder.
 ---
 name: {{skill-name}}
 description: Use when {{situation}}. {{What the skill does}}. Triggers - {{phrase}}, {{phrase}}. Not for {{case}}.
-argument-hint: {{<arg> [--flag]}}
+argument-hint: "{{<arg> [--flag]}}"
 allowed-tools: {{tools}}
 disable-model-invocation: {{true}}
 ---
@@ -69,7 +69,7 @@ A complete skill that follows the template and `references/guidelines.md`. It lo
 ---
 name: address-pr-comments
 description: Use when the user wants the open review comments on a GitHub pull request fixed. Reads each unresolved review thread, changes the code, and replies on the thread. Triggers - address PR comments, fix review feedback, resolve PR threads. Not for reviewing a pull request yourself.
-argument-hint: <pr-number> [--auto]
+argument-hint: "<pr-number> [--auto]"
 ---
 
 ## Dependencies

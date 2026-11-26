@@ -1,7 +1,7 @@
 ---
 name: verify-spec
 description: Use when a task spec, an L-story design, or a Spec or Design pull request needs verification in a fresh context before approval or slicing. Starts a fresh-context verifier subagent to check the five spec and design questions and verify every cited file path, symbol, and seam against the codebase, then posts one comment review on a Spec or Design PR or reports findings locally. Triggers - verify this spec, verify the design, check this spec PR, review this spec. Not for reviewing code diffs, which is what review does.
-argument-hint: <pr | issue | spec-or-design-path> [--local] [--auto]
+argument-hint: "<pr | issue | spec-or-design-path> [--local] [--auto]"
 ---
 
 ## Dependencies

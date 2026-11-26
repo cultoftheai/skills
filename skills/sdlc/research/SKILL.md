@@ -1,7 +1,7 @@
 ---
 name: research
 description: Use when a skill such as frame or shape needs one fact from outside the code, for example how a library, API or service behaves. Answers one question from primary sources with the search engine set in the settings file, and writes the findings with links, read dates and a label to RESEARCH.md in the task folder. Triggers - research this question, look up in the docs, check the changelog. Not for questions that the code can answer. Do not start it by default.
-argument-hint: <question> [issue]
+argument-hint: "<question> [issue]"
 ---
 
 ## Dependencies

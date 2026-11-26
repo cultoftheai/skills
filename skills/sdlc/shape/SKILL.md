@@ -1,7 +1,7 @@
 ---
 name: shape
 description: Use when a ready task is picked up and needs its spec before the build. Reads the code, confirms or raises the size, writes a flat spec file in the specs folder, verifies it, and opens a Spec PR when configured. Triggers - shape this task, write the spec, pick up the next task. Not for L-story designs, splitting a story into tasks, or writing code.
-argument-hint: <issue> [--auto]
+argument-hint: "<issue> [--auto]"
 ---
 
 ## Args

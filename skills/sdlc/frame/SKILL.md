@@ -1,7 +1,7 @@
 ---
 name: frame
 description: Use when a raw request (a client email, meeting notes, a one-line idea, a bug report) must become tracked work. Searches the tracker for a duplicate, asks only questions that change scope, writes a user story or an epic with stories, sizes it from XS to XL with the signals behind the size, and creates only the issues that the size needs. Triggers - frame this, turn this into a story, write a user story, size this request, new feature request. Not for splitting a story into tasks or for writing a technical spec.
-argument-hint: <request|issue> [--auto]
+argument-hint: "<request|issue> [--auto]"
 ---
 
 ## Args

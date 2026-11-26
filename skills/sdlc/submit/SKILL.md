@@ -1,7 +1,7 @@
 ---
 name: submit
 description: Use when a proven change is ready for review and needs a pull request. Checks that QA.md holds a pass for the head commit, then opens the PR with the goal, a visual, the evidence, the risk and Closes #N, and moves the issue to review. Triggers - open the PR, submit the task, create a pull request. Not for reviewing a PR or running QA.
-argument-hint: [task] [--auto]
+argument-hint: "[task] [--auto]"
 ---
 
 ## Dependencies

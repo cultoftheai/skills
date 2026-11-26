@@ -1,7 +1,7 @@
 ---
 name: review
 description: Use when a pull request or a branch before its PR needs a code diff review from a fresh context before a person approves it. Starts up to three reviewer subagents with no memory of the build, one for each axis at the ultra level. Checks a code diff against the acceptance criteria and the code review guide, and at ultra for files that contradict each other, and reports findings by severity. With --local, it reviews the branch before a PR exists and posts nothing. With --verify, it only checks that earlier findings were fixed. Triggers - review this PR, review the diff, review the branch. Not for verifying specs or designs (which is what verify-spec does), or for answering review comments on your own PR (which is what respond does).
-argument-hint: <pr | task | -> [--level ultra|high] [--local] [--verify] [--auto]
+argument-hint: "<pr | task | -> [--level ultra|high] [--local] [--verify] [--auto]"
 ---
 
 ## Dependencies

@@ -1,7 +1,7 @@
 ---
 name: ship
 description: Use when an approved pull request is ready to merge. Checks the merge gates (a person's approval, green checks, no unanswered review thread, QA evidence for the head commit), merges, removes the task folder when the settings say so, and deletes the branch and worktree. Triggers - ship this PR, merge the PR, ship it, land this. Not for opening a PR or reviewing one.
-argument-hint: [pr] [--auto]
+argument-hint: "[pr] [--auto]"
 ---
 
 ## Dependencies
