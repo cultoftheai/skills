@@ -2,15 +2,17 @@
 
 ## A good task
 
-- It is a vertical slice. It goes through every layer that the behaviour needs, and someone can demo it alone.
+- It is a small, independent vertical slice A–Z. It cuts through every layer needed for one narrow outcome, so someone can deliver, use, and demo it alone even before full feature completeness.
+- Avoid horizontal layer-only slices (such as backend-only or UI-only tasks), except for the shared foundations below.
 - One developer can build it in one context window and ship it as one PR.
-- It does not depend on a later task to be useful. It can depend on an earlier task through a blocking edge.
+- It does not depend on a later task to be useful. It can depend on an earlier foundation or blocker through a blocking edge.
 
 ## Order
 
+- Shared data model or schema foundation comes first as its own blocking task whenever multiple slices share new or changed entities, schemas, or migrations. Dependent slices block on it with native blocking links.
 - Prefactoring that makes the change easy comes first, as its own task. It changes no behaviour.
 - A wide mechanical change that cannot land in one slice gets three tasks in sequence: expand (add the new form next to the old one), migrate (move each user to the new form), contract (remove the old form).
-- Add a blocking edge only when a task cannot start before the other one merges. Tasks without an edge can run in parallel.
+- Add a blocking edge only when a task cannot start before the other one merges. Independent vertical slices have no edge between them and can run in parallel.
 
 ## Re-size
 
