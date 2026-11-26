@@ -1,7 +1,7 @@
 ---
 name: setup
 description: Use when a repository has no .sdlc/settings.json, when an SDLC skill ends with Next /setup, when the SDLC settings need new keys, or when the team moves to another tracker. Detects the default branch, tracker, guide files, risk paths and search tools, asks seven short groups of questions, then validates and writes the settings file. After that it offers to create the stage and size labels and add the scripts and templates. Triggers - set up sdlc, configure the sdlc skills, create the sdlc settings, run setup again, we are moving from Jira to Linear. Not for adding labels to one issue or for changing one setting by hand.
-argument-hint: [--auto]
+argument-hint: "[--auto]"
 ---
 
 ## Dependencies

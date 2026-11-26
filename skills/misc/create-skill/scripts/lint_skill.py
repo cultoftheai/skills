@@ -78,6 +78,14 @@ def check_description(meta):
     return errors
 
 
+def check_argument_hint(meta):
+    """Check that the frontmatter argument-hint is in double quotes, because a bare value that starts with '[' is not valid YAML."""
+    hint = meta.get("argument-hint")
+    if hint is None or (len(hint) >= 2 and hint.startswith('"') and hint.endswith('"')):
+        return []
+    return ["argument-hint is not in double quotes, which breaks the YAML frontmatter when it starts with '['"]
+
+
 def check_placeholders(text):
     """Check that no template placeholders are left."""
     if "{{" in text or "{%" in text:
@@ -213,6 +221,7 @@ def lint(skill_dir):
     errors = (
         check_name(meta, skill_dir)
         + check_description(meta)
+        + check_argument_hint(meta)
         + check_placeholders(text)
         + check_length(text)
         + structure_errors

@@ -1,7 +1,7 @@
 ---
 name: slice
 description: Use when a ready user story, or a shaped L story with its design, must be split into tasks before work starts. Cuts the story into small, independent A-Z vertical slices deliverable before full feature completeness, puts shared data models and prefactoring first as blocking tasks, and creates the tasks as sub-issues with native blocking links. Triggers - slice this story, split the story into tasks, break this down, plan the tasks. Not for writing a spec or for sizing a raw request.
-argument-hint: <story> [--auto]
+argument-hint: "<story> [--auto]"
 ---
 
 ## Args
