@@ -1,13 +1,14 @@
 #!/bin/sh
-# Check that the newest QA run in a task folder is a pass for the head commit.
+# Check that the newest QA run in a work folder is a pass for the head commit.
 #
-# Usage: qa_check.sh <task-dir>
+# Usage: qa_check.sh <work-dir>
 #
-# Reads <task-dir>/QA.md. The newest run is the first "## Run" section.
+# Reads <work-dir>/self-qa.md (falling back to <work-dir>/QA.md when only the
+# legacy file exists). The newest run is the first "## Run" section.
 # Exit code 0 when that run is a pass and its commit is HEAD. The run also
 # counts for HEAD when it is an ancestor of HEAD and every commit after it
-# either changes only files inside <task-dir>, for example the commit that
-# adds QA.md itself, or carries the Git trailer "SDLC-Docs-Only: true".
+# changes only files inside <work-dir> or <specs.path>/, or carries the Git
+# trailer "SDLC-Docs-Only: true" or "SDLC-Spec-Archive: true".
 # Prints "QA check passed: pass recorded for <commit>", or "QA check failed:
 # <reason>" and exits 1. Exit code 1 also on bad arguments.
 
@@ -15,6 +16,9 @@ set -u
 exec 3>&1
 
 DOCS_ONLY_TRAILER=SDLC-Docs-Only
+SPEC_ARCHIVE_TRAILER=SDLC-Spec-Archive
+SETTINGS=.sdlc/settings.json
+DEFAULT_SPECS_PATH=.sdlc/specs
 
 # Print the usage comment at the top of this script to stderr.
 usage() {
@@ -62,7 +66,7 @@ resolve() {
         fail "the newest run names commit $1, which this repository does not have"
 }
 
-# Print the task folder relative to the repository root with a trailing slash, or nothing when it is outside the repository.
+# Print the work folder relative to the repository root with a trailing slash, or nothing when it is outside the repository.
 task_prefix() {
     root=$(run_git rev-parse --show-toplevel) || exit 1
     root=$(cd "$root" && pwd -P) || exit 1
@@ -73,12 +77,33 @@ task_prefix() {
     esac
 }
 
-# Print the files of the list, one per line, that do not start with the prefix. An empty prefix keeps every file.
+# Print specs.path from .sdlc/settings.json (or the default) with leading "./" removed and a trailing slash.
+specs_prefix() {
+    path=''
+    if [ -f "$SETTINGS" ] && command -v jq >/dev/null 2>&1; then
+        path=$(jq -r '.specs.path // empty' "$SETTINGS" 2>/dev/null)
+    fi
+    path=${path:-$DEFAULT_SPECS_PATH}
+    while [ "${path#./}" != "$path" ]; do
+        path=${path#./}
+    done
+    while [ "${path%/}" != "$path" ] && [ "$path" != / ]; do
+        path=${path%/}
+    done
+    printf '%s/\n' "$path"
+}
+
+# Print paths from the list that do not start with the non-empty work prefix or the specs prefix.
 outside() {
     printf '%s\n' "$1" | while IFS= read -r path; do
-        if [ -n "$path" ] && { [ -z "$2" ] || [ "${path#"$2"}" = "$path" ]; }; then
-            printf '%s\n' "$path"
+        [ -n "$path" ] || continue
+        if [ -n "$2" ] && [ "${path#"$2"}" != "$path" ]; then
+            continue
         fi
+        if [ -n "$3" ] && [ "${path#"$3"}" != "$path" ]; then
+            continue
+        fi
+        printf '%s\n' "$path"
     done
 }
 
@@ -87,23 +112,23 @@ has_true() {
     lower "$1" | tr -s '[:space:]' '\n' | grep -qx true
 }
 
-# Print the files that one commit changes outside the task folder, or nothing when it carries the docs-only trailer.
+# Print the files that one commit changes outside the work and specs folders, or nothing when it carries a non-code trailer.
 commit_stale_files() {
-    trailers=$(run_git log -1 "--format=%(trailers:key=$DOCS_ONLY_TRAILER,valueonly)" "$1") || exit 1
+    trailers=$(run_git log -1 "--format=%(trailers:key=$DOCS_ONLY_TRAILER,key=$SPEC_ARCHIVE_TRAILER,valueonly)" "$1") || exit 1
     if has_true "$trailers"; then
         return 0
     fi
     changed=$(run_git diff --name-only "$1^1" "$1") || exit 1
-    outside "$changed" "$2"
+    outside "$changed" "$2" "$3"
 }
 
-# Print the files that make the evidence stale, sorted and unique: files outside the task folder changed by later commits without the docs-only trailer.
+# Print the files that make the evidence stale, sorted and unique: files outside the work and specs folders changed by later commits without a non-code trailer.
 stale_changes() {
     later=$(run_git rev-list "$1..$2") || exit 1
     files=''
     for sha in $later; do
         files="$files
-$(commit_stale_files "$sha" "$3")" || exit 1
+$(commit_stale_files "$sha" "$3" "$4")" || exit 1
     done
     printf '%s\n' "$files" | sed '/^$/d' | LC_ALL=C sort -u
 }
@@ -113,7 +138,7 @@ first_five() {
     printf '%s\n' "$1" | awk 'NR <= 5 { printf "%s%s", (NR > 1 ? ", " : ""), $0 }'
 }
 
-# Fail unless the run commit is HEAD, or every later commit is docs-only or changes only the task folder.
+# Fail unless the run commit is HEAD, or every later commit is non-code or changes only the work or specs folder.
 check_commit() {
     tested=$(resolve "$1") || exit 1
     head=$(run_git rev-parse HEAD) || exit 1
@@ -123,15 +148,19 @@ check_commit() {
     base=$(run_git merge-base "$tested" "$head") || exit 1
     [ "$base" = "$tested" ] || fail "the newest run is for $1, which is not an ancestor of HEAD $head"
     prefix=$(task_prefix) || exit 1
-    stale=$(stale_changes "$tested" "$head" "$prefix") || exit 1
+    specs=$(specs_prefix)
+    stale=$(stale_changes "$tested" "$head" "$prefix" "$specs") || exit 1
     [ -z "$stale" ] || fail "the newest run is for $1, but HEAD $head also changes $(first_five "$stale")"
 }
 
-# Fail unless the newest run in QA.md is a pass for HEAD. Print the tested commit.
+# Fail unless the newest run in self-qa.md (or legacy QA.md) is a pass for HEAD. Print the tested commit.
 check() {
-    qa_file="${TASK_DIR%/}/QA.md"
-    [ -f "$qa_file" ] || fail "$qa_file does not exist; run prove first"
-    run=$(newest_run "$qa_file") || fail "QA.md has no '## Run' section"
+    qa_file="${TASK_DIR%/}/self-qa.md"
+    if [ ! -f "$qa_file" ] && [ -f "${TASK_DIR%/}/QA.md" ]; then
+        qa_file="${TASK_DIR%/}/QA.md"
+    fi
+    [ -f "$qa_file" ] || fail "${TASK_DIR%/}/self-qa.md does not exist; run prove --local first"
+    run=$(newest_run "$qa_file") || fail "$(basename "$qa_file") has no '## Run' section"
     commit=$(run_field Commit "$run") || exit 1
     result=$(run_field Result "$run") || exit 1
     result=$(lower "$result")

@@ -3,14 +3,14 @@
 HEAD=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 OLD=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 ROOT=$(pwd -P)
-TASK="$ROOT/.sdlc/task/5"
+TASK="$ROOT/.sdlc/work/5"
 LATER=''
 mkdir -p "$TASK"
 
-# Write a QA.md whose newest run has the commit and result, above an older passing run.
+# Write a self-qa.md whose newest run has the commit and result, above an older passing run.
 write_qa() {
     printf '## Run 2026-11-20T10:00:00Z\nCommit: %s\nResult: %s\n### Steps\n- cmd -> ok\n\n## Assumptions\n- the app runs on the default port\n\n## Run 2026-11-19T10:00:00Z\nCommit: %s\nResult: pass\n### Steps\n- cmd -> ok\n' \
-        "${1:-$HEAD}" "${2:-pass}" "$HEAD" > "$TASK/QA.md"
+        "${1:-$HEAD}" "${2:-pass}" "$HEAD" > "$TASK/self-qa.md"
 }
 
 # Fake a repository whose root is the argument, with HEAD and OLD, where OLD is an ancestor of HEAD.
@@ -23,10 +23,10 @@ repo() {
     fake_git "rev-list $OLD..$HEAD" 0
 }
 
-# Fake one commit after OLD: its number, its SDLC-Docs-Only trailer value, and the files it changes. Call oldest first.
+# Fake one commit after OLD: its number, its non-code trailer value, and the files it changes. Call oldest first.
 later_commit() {
     sha=$(printf '%040x' "$1")
-    fake_git "log -1 --format=%(trailers:key=SDLC-Docs-Only,valueonly) $sha" 0 "$2"
+    fake_git "log -1 --format=%(trailers:key=SDLC-Docs-Only,key=SDLC-Spec-Archive,valueonly) $sha" 0 "$2"
     shift 2
     fake_git "diff --name-only $sha^1 $sha" 0 "$(printf '%s\n' "$@")"
     LATER="$sha
@@ -53,20 +53,26 @@ test_pass_for_head() {
     assert_passes "$HEAD"
 }
 
+test_falls_back_to_legacy_qa_md() {
+    repo
+    printf '## Run 2026-11-20T10:00:00Z\nCommit: %s\nResult: pass\n### Steps\n- cmd -> ok\n' "$HEAD" > "$TASK/QA.md"
+    assert_passes "$HEAD"
+}
+
 test_missing_file() {
     repo
-    assert_fails "does not exist"
+    assert_fails "self-qa.md does not exist"
 }
 
 test_no_run_section() {
     repo
-    printf '# QA\nnothing yet\n' > "$TASK/QA.md"
+    printf '# Self-QA\nnothing yet\n' > "$TASK/self-qa.md"
     assert_fails "no '## Run' section"
 }
 
 test_missing_commit_line() {
     repo
-    printf '## Run 2026-11-20\nResult: pass\n' > "$TASK/QA.md"
+    printf '## Run 2026-11-20\nResult: pass\n' > "$TASK/self-qa.md"
     assert_fails "no 'Commit:' line"
 }
 
@@ -92,15 +98,15 @@ test_unknown_commit() {
 test_stale_commit_with_code_change() {
     repo
     write_qa "$OLD"
-    later_commit 1 '' .sdlc/task/5/QA.md
+    later_commit 1 '' .sdlc/work/5/self-qa.md
     later_commit 2 '' src/app.py
     assert_fails "also changes src/app.py"
 }
 
-test_old_commit_with_only_task_folder_changes() {
+test_old_commit_with_only_work_folder_changes() {
     repo
     write_qa "$OLD"
-    later_commit 1 '' .sdlc/task/5/QA.md
+    later_commit 1 '' .sdlc/work/5/self-qa.md
     assert_passes "$OLD"
 }
 
@@ -111,36 +117,66 @@ test_docs_only_trailer_commit_is_accepted() {
     assert_passes "$OLD"
 }
 
-test_commit_without_trailer_outside_task_folder_is_rejected() {
+test_spec_archive_trailer_commit_is_accepted() {
+    repo
+    write_qa "$OLD"
+    later_commit 1 true .sdlc/specs/archived/5-task.md
+    assert_passes "$OLD"
+}
+
+test_specs_only_commit_is_accepted() {
+    repo
+    write_qa "$OLD"
+    later_commit 1 '' .sdlc/specs/5-task.md
+    assert_passes "$OLD"
+}
+
+test_custom_specs_path_from_settings_is_accepted() {
+    mkdir -p "$ROOT/.sdlc"
+    printf '{"specs":{"path":"docs/specs"}}\n' > "$ROOT/.sdlc/settings.json"
+    repo
+    write_qa "$OLD"
+    later_commit 1 '' docs/specs/5-task.md
+    assert_passes "$OLD"
+}
+
+test_specs_mixed_with_code_change_is_rejected() {
+    repo
+    write_qa "$OLD"
+    later_commit 1 '' .sdlc/specs/5-task.md src/app.py
+    assert_fails "also changes src/app.py"
+}
+
+test_commit_without_trailer_outside_work_folder_is_rejected() {
     repo
     write_qa "$OLD"
     later_commit 1 '' docs/guide.md
     assert_fails "also changes docs/guide.md"
 }
 
-test_mix_of_task_folder_and_docs_only_commits_is_accepted() {
+test_mix_of_work_folder_and_docs_only_commits_is_accepted() {
     repo
     write_qa "$OLD"
-    later_commit 1 '' .sdlc/task/5/QA.md
+    later_commit 1 '' .sdlc/work/5/self-qa.md
     later_commit 2 true docs/guide.md
-    later_commit 3 '' .sdlc/task/5/QA.md
+    later_commit 3 '' .sdlc/work/5/self-qa.md
     assert_passes "$OLD"
 }
 
 test_mix_with_one_plain_code_commit_is_rejected() {
     repo
     write_qa "$OLD"
-    later_commit 1 '' .sdlc/task/5/QA.md
+    later_commit 1 '' .sdlc/work/5/self-qa.md
     later_commit 2 true docs/guide.md
     later_commit 3 '' src/app.py
     output=$("$SH" "$SCRIPTS/qa_check.sh" "$TASK")
     assert_eq "$output" "QA check failed: the newest run is for $OLD, but HEAD $HEAD also changes src/app.py"
 }
 
-test_other_task_folder_is_not_exempt() {
+test_other_work_folder_is_not_exempt() {
     repo
     write_qa "$OLD"
-    later_commit 1 '' .sdlc/task/50/QA.md
+    later_commit 1 '' .sdlc/work/50/self-qa.md
     assert_fails "also changes"
 }
 
@@ -155,7 +191,7 @@ test_folder_outside_repository_needs_exact_head() {
     mkdir -p "$ROOT/elsewhere"
     repo "$ROOT/elsewhere"
     write_qa "$OLD"
-    later_commit 1 '' .sdlc/task/5/QA.md
+    later_commit 1 '' .sdlc/work/5/self-qa.md
     assert_fails "also changes"
 }
 
