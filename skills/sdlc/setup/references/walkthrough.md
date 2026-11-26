@@ -28,7 +28,7 @@ Ask in this order. Each group is one message.
    - `issue.estimation`: `tshirt` estimates with the size labels XS to XL, `fibonacci` with story points, `none` not at all.
 2. Tracker: `issue.project`, `issue.stages`, `issue.size_field`, `issue.types`. Ask only the keys that step 3 did not keep. Read `references/trackers.md` for the tracker in `issue.tracker`. Detect those keys as it says, then ask.
 3. Guides: `guides.development`, `guides.code_review`, `guides.qa`, `guides.labeling`. Tell the person that a skill with a `null` guide runs without one and says so.
-4. Tasks and specs: `task.path`, `task.keep` (keep task folders after merge), `spec.storage` (where the spec lives), `spec.review` (whether specs are reviewed), `templates.*` (the templates of issue bodies and task files, which step 8 copies in).
+4. Specs and work: `specs.path` (committed specs folder), `specs.archive_path` (archived specs folder), `specs.delivery` (`pr` for Spec PRs, or `direct`), `specs.on_ship` (`archive`, `delete`, or `keep` on merge), `work.path` (gitignored local working folder), `spec.storage` (where the spec lives), `spec.review` (`pr`, `auto`, `manual`, or `off`), `templates.*` (the templates of issue bodies and task files, which step 8 copies in).
 5. Review: `review.resolve` (who resolves a fixed thread), `review.prefix` (the mark on agent replies), `review.max_rounds` (full review rounds on a PR before review asks to verify or skip).
 6. Sizing: Confirm the suggested `sizing.risk_paths`. Show the thresholds with their defaults. Change a threshold only when the person asks.
 7. Retro and research: `retro.scope` (which chats the feature retro reads), `research.engine`.

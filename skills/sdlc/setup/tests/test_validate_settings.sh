@@ -9,8 +9,9 @@ VALID='{
   "issue": {"tracker": "github", "estimation": "tshirt", "project": null,
             "stages": {"ready": null, "shaped": null, "in-progress": null, "review": null, "done": null, "blocked": null},
             "size_field": "label", "types": {"epic": null, "story": null, "task": null, "subtask": null}},
-  "task": {"path": ".sdlc/task", "keep": true},
-  "spec": {"storage": "local", "review": "manual"},
+  "specs": {"path": ".sdlc/specs", "archive_path": ".sdlc/specs/archived", "delivery": "pr", "on_ship": "archive"},
+  "work": {"path": ".sdlc/work"},
+  "spec": {"storage": "local", "review": "pr"},
   "review": {"resolve": "reviewer", "prefix": ":robot:"},
   "retro": {"scope": "worktree"},
   "research": {"engine": null},
@@ -101,4 +102,31 @@ test_missing_file_is_reported() {
 test_invalid_json_is_reported() {
     printf '{"default_branch":' > settings.json
     assert_eq "$("$SH" "$SCRIPTS/validate_settings.sh" settings.json)" "settings.json: not valid JSON"
+}
+
+test_specs_delivery_and_on_ship_values() {
+    for delivery in pr direct; do
+        for on_ship in archive delete keep; do
+            assert_eq "$(errors_for ".specs.delivery = \"$delivery\" | .specs.on_ship = \"$on_ship\"")" valid
+        done
+    done
+    assert_contains "$(errors_for '.specs.delivery = "commit"')" "specs.delivery: must be one of"
+    assert_contains "$(errors_for '.specs.on_ship = "remove"')" "specs.on_ship: must be one of"
+}
+
+test_spec_review_values() {
+    for mode in pr auto manual off; do
+        assert_eq "$(errors_for ".spec.review = \"$mode\"")" valid
+    done
+    assert_contains "$(errors_for '.spec.review = "never"')" "spec.review: must be one of"
+}
+
+test_legacy_task_key_is_rejected() {
+    assert_eq "$(errors_for '.task = {"path": ".sdlc/task", "keep": true}')" "task: unknown key"
+}
+
+test_empty_specs_or_work_path_is_rejected() {
+    assert_eq "$(errors_for '.specs.path = ""')" "specs.path: must not be empty"
+    assert_eq "$(errors_for '.specs.archive_path = ""')" "specs.archive_path: must not be empty"
+    assert_eq "$(errors_for '.work.path = ""')" "work.path: must not be empty"
 }
