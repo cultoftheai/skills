@@ -231,6 +231,20 @@ gate_detail() {
     printf '%s\n' "$1" | sed -n "s/^$2: fail - //p" | tail -n 1
 }
 
+# Exit 0 when the login is the only non-bot User with push access. Fails closed on any gh or jq error.
+is_solo_author() {
+    [ -n "$1" ] || return 1
+    collaborators=$(gh api "$COLLAB_ENDPOINT" 2> /dev/null) || return 1
+    printf '%s\n' "$collaborators" | jq -e --arg author "$1" "$SOLO_CHECK" > /dev/null 2>&1
+}
+
+# Exit 0 when a person approved the pull request, or its solo maintainer approved it in a PR comment.
+is_approved() {
+    holds "$1" has_human_approval && return 0
+    holds "$1" '(has_blocking_review | not) and has_solo_approval_comment' || return 1
+    is_solo_author "$(get "$1" author)"
+}
+
 # Print the next step for an issue or a pull request number.
 route() {
     found=$(item "$1") || exit 1
@@ -313,7 +327,7 @@ route_pr() {
         else
             skill review "$pr_number"
         fi
-    elif holds "$1" has_human_approval; then
+    elif is_approved "$1"; then
         skill ship "$pr_number"
     elif holds "$1" 'requested_reviewers | length > 0'; then
         wait_for_review "$1"
@@ -509,7 +523,7 @@ after_verify_spec() {
     verified=$(item "$REF") || exit 1
     if [ -n "$FAILED" ]; then
         skill handle-review "$REF"
-    elif holds "$verified" has_human_approval; then
+    elif is_approved "$verified"; then
         skill ship "$REF"
     elif holds "$verified" 'requested_reviewers | length > 0'; then
         wait_for_review "$verified"

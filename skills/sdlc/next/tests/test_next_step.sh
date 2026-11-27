@@ -337,3 +337,77 @@ test_bot_approval_is_not_a_person() {
     pr 15 4 '{reviews: [review("APPROVED"; "ci-bot"; "Bot")], comments: [qa("pass")]}'
     assert_eq "$(next_line 15)" "Next: /sdlc:document 4"
 }
+
+# Make "dev" the only person with push access, next to a bot writer and a read-only user.
+solo_repo() {
+    fake_collaborators '[{"login":"dev","type":"User","permissions":{"push":true}},{"login":"dependabot","type":"Bot","permissions":{"push":true}},{"login":"reader","type":"User","permissions":{"push":false,"pull":true}}]'
+}
+
+test_solo_approved_prs_route_to_ship() {
+    solo_repo
+    pr 20 4 '{reviews: [review("COMMENTED"; "dev"; "User")], comments: [comment("LGTM")]}'
+    pr 21 - '{body: "Spec for #4", reviews: [review("COMMENTED"; "dev"; "User")], requests: ["alice"], comments: [comment("/approve")]}'
+    pr 22 - '{body: "Design for #87", reviews: [review("COMMENTED"; "dev"; "User")], requests: ["alice"], comments: [comment("Approved!")]}'
+    assert_eq "$(next_line 20)" "Next: /sdlc:ship 20"
+    assert_eq "$(next_line 21)" "Next: /sdlc:ship 21"
+    assert_eq "$(next_line 22)" "Next: /sdlc:ship 22"
+    assert_eq "$(next_line 21 --after verify-spec --result pass)" "Next: /sdlc:ship 21"
+    assert_eq "$(next_line 22 --after verify-spec --result pass)" "Next: /sdlc:ship 22"
+}
+
+test_solo_approval_uses_the_review_prefix() {
+    solo_repo
+    printf '{"review":{"prefix":":bot:"}}\n' > .sdlc/settings.json
+    pr 20 4 '{reviews: [review("COMMENTED"; "dev"; "User")], comments: [comment(":bot: [approval] approved in chat by @dev")]}'
+    pr 21 4 '{reviews: [review("COMMENTED"; "dev"; "User")], comments: [comment(":robot: [approval] approved in chat by @dev")]}'
+    assert_eq "$(next_line 20)" "Next: /sdlc:ship 20"
+    assert_eq "$(next_line 21)" "Next: /sdlc:prove 21"
+}
+
+test_solo_prs_without_approval_keep_their_route() {
+    solo_repo
+    pr 20 4 '{reviews: [review("COMMENTED"; "dev"; "User")], comments: [comment("LGTM"; "lead"), comment("LGTM"; "dev"; "Bot"), comment("LGTM"; "dev"; "User"; true), comment("looks good to me")]}'
+    pr 21 4 '{reviews: [review("COMMENTED"; "dev"; "User")], comments: [qa("pass")]}'
+    pr 22 - '{body: "Spec for #4", reviews: [review("COMMENTED"; "dev"; "User")]}'
+    pr 23 - '{body: "Design for #87", reviews: [review("COMMENTED"; "dev"; "User")]}'
+    assert_eq "$(next_line 20)" "Next: /sdlc:prove 20"
+    assert_eq "$(next_line 21)" "Next: /sdlc:document 4"
+    assert_eq "$(next_line 4 --after document)" "Next: /sdlc:ship 4"
+    assert_eq "$(next_line 22)" "Next: /sdlc:ship 22"
+    assert_eq "$(next_line 23 --after verify-spec --result pass)" "Next: /sdlc:ship 23"
+}
+
+test_blocking_reviews_stop_solo_approval() {
+    solo_repo
+    pr 20 4 '{reviews: [review("CHANGES_REQUESTED"; "lead"; "User")], opinionated: [review("CHANGES_REQUESTED"; "lead"; "User")], comments: [comment("LGTM")]}'
+    pr 21 4 '{reviews: [review("COMMENTED"; "dev"; "User")], decision: "REVIEW_REQUIRED", comments: [comment("LGTM")]}'
+    pr 22 4 '{reviews: [review("COMMENTED"; "dev"; "User")], decision: "CHANGES_REQUESTED", comments: [comment("LGTM")]}'
+    assert_eq "$(next_line 20)" "Next: /sdlc:prove 20"
+    assert_eq "$(next_line 21)" "Next: /sdlc:prove 21"
+    assert_eq "$(next_line 22)" "Next: /sdlc:prove 22"
+}
+
+test_solo_detection_fails_closed() {
+    pr 20 4 '{reviews: [review("COMMENTED"; "dev"; "User")], comments: [comment("LGTM")]}'
+    fake_collaborators 1 "HTTP 403"
+    assert_eq "$(next_line 20)" "Next: /sdlc:prove 20"
+    fake_collaborators '{"message":"forbidden"}'
+    assert_eq "$(next_line 20)" "Next: /sdlc:prove 20"
+    fake_collaborators "$(jq -cn '[{login:"dev",type:"User",permissions:{push:true}}] + [range(99) | {login:"b\(.)",type:"Bot",permissions:{push:true}}]')"
+    assert_eq "$(next_line 20)" "Next: /sdlc:prove 20"
+    fake_collaborators '[{"login":"lead","type":"User","permissions":{"push":true}}]'
+    assert_eq "$(next_line 20)" "Next: /sdlc:prove 20"
+}
+
+test_two_writers_keep_the_current_routes() {
+    pr 20 4 '{reviews: [review("COMMENTED"; "dev"; "User")], comments: [comment("LGTM")]}'
+    pr 21 - '{body: "Spec for #4", reviews: [review("COMMENTED"; "dev"; "User")], requests: ["alice"], comments: [comment("/approve")]}'
+    pr 22 4 '{reviews: [review("COMMENTED"; "dev"; "User")]}'
+    assert_eq "$(next_line 20)" "Next: /sdlc:prove 20"
+    assert_eq "$(next_line 21)" "Next: wait for review from @alice on PR #21, then run /sdlc:next 21"
+    assert_eq "$(next_line 21 --after verify-spec --result pass)" \
+        "Next: wait for review from @alice on PR #21, then run /sdlc:next 21"
+    : > gh.log
+    assert_eq "$(next_line 22)" "Next: /sdlc:prove 22"
+    assert_eq "$(gh_calls 'api repos')" ""
+}
