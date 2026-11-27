@@ -48,12 +48,13 @@ query($owner: String!, $name: String!, $number: Int!) {
         closedByPullRequestsReferences(first: 10, includeClosedPrs: true) { nodes { number state } }
       }
       ... on PullRequest {
-        number state body
+        number state body reviewDecision
         author { login }
         files(first: 100) { nodes { path } }
-        comments(last: 100) { nodes { body } }
+        comments(last: 100) { nodes { body isMinimized author { __typename login } } }
         closingIssuesReferences(first: 10) { nodes { number } }
         reviews(first: 100) { nodes { state author { __typename login } } }
+        latestOpinionatedReviews(first: 100) { nodes { state author { __typename login } } }
         reviewRequests(first: 20) { nodes { requestedReviewer { __typename ... on User { login } } } }
         reviewThreads(first: 100) { nodes { isResolved comments(last: 1) { nodes { author { login } } } } }
       }
@@ -78,9 +79,31 @@ JQ_DEFS='
   def author: .author.login // null;
   def threads_needing_reply: author as $a | [(.reviewThreads.nodes // [])[] | select((.isResolved | not) and (.comments.nodes | last | .author.login) != $a)];
   def reviews: .reviews.nodes // [];
-  def has_human_approval: author as $a | any(reviews[]; .state == "APPROVED" and .author.__typename == "User" and .author.login != $a);
   def requested_reviewers: [(.reviewRequests.nodes // [])[] | .requestedReviewer // {} | select(.__typename == "User") | .login];
+  def opinionated_reviews: .latestOpinionatedReviews.nodes // [];
+  def has_human_approval: author as $a | any(opinionated_reviews[]; .state == "APPROVED" and .author.__typename == "User" and .author.login != $a);
+  def has_blocking_review:
+    any(opinionated_reviews[]; .state == "CHANGES_REQUESTED")
+    or (.reviewDecision | IN("CHANGES_REQUESTED", "REVIEW_REQUIRED"));
+  def first_nonempty_line: split("\n") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0)) | first // "";
+  def is_approval_body:
+    (. // "") | first_nonempty_line
+    | startswith($review_prefix + " [approval]") or test("^(/approve|approve|approved|lgtm)[.!]*$"; "i");
+  def has_solo_approval_comment:
+    author as $a
+    | $a != null
+      and any((.comments.nodes // [])[];
+        (.isMinimized // false | not)
+        and .author != null
+        and .author.login == $a
+        and (.author.__typename // "User") == "User"
+        and (.body | is_approval_body));
 '
+SOLO_CHECK='
+  if type == "array" and length < 100 then
+    ([.[] | select(type == "object" and .type == "User" and (.permissions | type == "object" and .push == true)) | .login] | unique) == [$author]
+  else false end'
+COLLAB_ENDPOINT='repos/{owner}/{repo}/collaborators?affiliation=all&permission=push&per_page=100'
 
 # Print the usage comment at the top of this script to stderr.
 usage() {
@@ -208,6 +231,21 @@ gate_detail() {
     printf '%s\n' "$1" | sed -n "s/^$2: fail - //p" | tail -n 1
 }
 
+# Exit 0 when the login is the only non-bot User with push access. Fails closed on any gh or jq error.
+is_solo_author() {
+    [ -n "$1" ] || return 1
+    collaborators=$(gh api "$COLLAB_ENDPOINT" 2> /dev/null) || return 1
+    printf '%s\n' "$collaborators" | jq -e --arg author "$1" "$SOLO_CHECK" > /dev/null 2>&1
+}
+
+# Exit 0 when no review blocks the pull request and a person approved it, or its solo maintainer approved it in a PR comment.
+is_approved() {
+    holds "$1" 'has_blocking_review | not' || return 1
+    holds "$1" has_human_approval && return 0
+    holds "$1" has_solo_approval_comment || return 1
+    is_solo_author "$(get "$1" author)"
+}
+
 # Print the next step for an issue or a pull request number.
 route() {
     found=$(item "$1") || exit 1
@@ -290,7 +328,7 @@ route_pr() {
         else
             skill review "$pr_number"
         fi
-    elif holds "$1" has_human_approval; then
+    elif is_approved "$1"; then
         skill ship "$pr_number"
     elif holds "$1" 'requested_reviewers | length > 0'; then
         wait_for_review "$1"
@@ -486,7 +524,7 @@ after_verify_spec() {
     verified=$(item "$REF") || exit 1
     if [ -n "$FAILED" ]; then
         skill handle-review "$REF"
-    elif holds "$verified" has_human_approval; then
+    elif is_approved "$verified"; then
         skill ship "$REF"
     elif holds "$verified" 'requested_reviewers | length > 0'; then
         wait_for_review "$verified"
@@ -532,6 +570,7 @@ gate_step() {
     pr_number=$(get "$1" .number)
     qa=$(gate_detail "$2" qa)
     checks=$(gate_detail "$2" checks)
+    approval=$(gate_detail "$2" approval)
     if gate_failed "$2" threads; then
         skill handle-review "$pr_number"
     elif gate_failed "$2" qa && starts_with "$qa" "local HEAD"; then
@@ -540,10 +579,12 @@ gate_step() {
         skill prove "$pr_number"
     elif gate_failed "$2" checks && starts_with "$checks" failed; then
         wait_then "fix the failed checks on PR #$pr_number ($checks)" "ship $pr_number"
-    elif gate_failed "$2" approval; then
-        wait_then "wait for a person to approve PR #$pr_number ($(gate_detail "$2" approval))" "ship $pr_number"
+    elif gate_failed "$2" approval && ! starts_with "$approval" "no solo approval from "; then
+        wait_then "wait for a person to approve PR #$pr_number ($approval)" "ship $pr_number"
     elif gate_failed "$2" checks; then
         wait_then "wait for CI on PR #$pr_number ($checks)" "ship $pr_number"
+    elif gate_failed "$2" approval; then
+        wait_then "approve PR #$pr_number ($approval)" "ship $pr_number"
     else
         skill ship "$pr_number"
     fi
