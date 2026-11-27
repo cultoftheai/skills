@@ -48,12 +48,13 @@ query($owner: String!, $name: String!, $number: Int!) {
         closedByPullRequestsReferences(first: 10, includeClosedPrs: true) { nodes { number state } }
       }
       ... on PullRequest {
-        number state body
+        number state body reviewDecision
         author { login }
         files(first: 100) { nodes { path } }
-        comments(last: 100) { nodes { body } }
+        comments(last: 100) { nodes { body isMinimized author { __typename login } } }
         closingIssuesReferences(first: 10) { nodes { number } }
         reviews(first: 100) { nodes { state author { __typename login } } }
+        latestOpinionatedReviews(first: 100) { nodes { state author { __typename login } } }
         reviewRequests(first: 20) { nodes { requestedReviewer { __typename ... on User { login } } } }
         reviewThreads(first: 100) { nodes { isResolved comments(last: 1) { nodes { author { login } } } } }
       }
@@ -80,7 +81,29 @@ JQ_DEFS='
   def reviews: .reviews.nodes // [];
   def has_human_approval: author as $a | any(reviews[]; .state == "APPROVED" and .author.__typename == "User" and .author.login != $a);
   def requested_reviewers: [(.reviewRequests.nodes // [])[] | .requestedReviewer // {} | select(.__typename == "User") | .login];
+  def opinionated_reviews: .latestOpinionatedReviews.nodes // [];
+  def has_blocking_review:
+    any(opinionated_reviews[]; .state == "CHANGES_REQUESTED")
+    or (.reviewDecision | IN("CHANGES_REQUESTED", "REVIEW_REQUIRED"));
+  def first_nonempty_line: split("\n") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0)) | first // "";
+  def is_approval_body:
+    (. // "") | first_nonempty_line
+    | startswith($review_prefix + " [approval]") or test("^(/approve|approve|approved|lgtm)[.!]*$"; "i");
+  def has_solo_approval_comment:
+    author as $a
+    | $a != null
+      and any((.comments.nodes // [])[];
+        (.isMinimized // false | not)
+        and .author != null
+        and .author.login == $a
+        and (.author.__typename // "User") == "User"
+        and (.body | is_approval_body));
 '
+SOLO_CHECK='
+  if type == "array" and length < 100 then
+    ([.[] | select(type == "object" and .type == "User" and (.permissions | type == "object" and .push == true)) | .login] | unique) == [$author]
+  else false end'
+COLLAB_ENDPOINT='repos/{owner}/{repo}/collaborators?affiliation=all&permission=push&per_page=100'
 
 # Print the usage comment at the top of this script to stderr.
 usage() {

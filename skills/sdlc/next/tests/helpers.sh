@@ -9,8 +9,9 @@ mkdir -p "$TEST_TMP/bin" "$TEST_TMP/gh"
 cat > "$TEST_TMP/bin/gh" <<'FAKE'
 #!/bin/sh
 printf '%s\n' "$*" >> "$TEST_TMP/gh.log"
-rule="$TEST_TMP/gh/$1_$2"
-if [ "$1 $2" = "api graphql" ] && [ ! -f "$rule.code" ]; then
+key=$(printf '%s\n' "$1 ${2:-}" | LC_ALL=C sed 's/[^A-Za-z0-9]/_/g')
+rule="$TEST_TMP/gh/$key"
+if [ "$key" = api_graphql ] && [ ! -f "$rule.code" ]; then
     number=$(printf '%s\n' "$@" | sed -n 's/^number=//p')
     rule="$TEST_TMP/gh/item_$number"
     jq -s --argjson n "$number" '{data: {repository: {issueOrPullRequest: (map(select(.number == $n))[0])}}}' "$TEST_TMP/items.jsonl" > "$rule.out"
@@ -63,9 +64,22 @@ FAKE
 
 # Make the fake gh answer "gh <command> <subcommand> ..." with the exit code and stdout.
 fake_gh() {
-    printf '%s\n' "$2" > "$TEST_TMP/gh/$(echo "$1" | tr ' ' _).code"
-    printf '%s\n' "${3:-}" > "$TEST_TMP/gh/$(echo "$1" | tr ' ' _).out"
+    key=$(printf '%s\n' "$1" | LC_ALL=C sed 's/[^A-Za-z0-9]/_/g')
+    printf '%s\n' "$2" > "$TEST_TMP/gh/$key.code"
+    printf '%s\n' "${3:-}" > "$TEST_TMP/gh/$key.out"
 }
+
+# Make the fake gh answer the collaborators endpoint with exit code (default 0) and output.
+fake_collaborators() {
+    if [ $# -eq 1 ]; then
+        fake_gh "$COLLAB_API" 0 "$1"
+    else
+        fake_gh "$COLLAB_API" "$1" "$2"
+    fi
+}
+
+COLLAB_API='api repos/{owner}/{repo}/collaborators?affiliation=all&permission=push&per_page=100'
+fake_collaborators '[{"login":"dev","type":"User","permissions":{"push":true}},{"login":"lead","type":"User","permissions":{"push":true}}]'
 
 # Add a node to the issues and pull requests that the fake "gh api graphql" answers with, by number.
 fake_item() {

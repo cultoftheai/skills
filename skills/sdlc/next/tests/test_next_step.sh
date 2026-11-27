@@ -8,6 +8,10 @@ NODE_DEFS='
   def thread($resolved; $l): {isResolved: $resolved, comments: {nodes: [{author: {login: $l}}]}};
   def qa($r): {body: ":robot: [qa] \($r)\nCommit: aaa\nDate: 2026-11-26T10:00:00Z"};
   def file($p): {path: $p};
+  def comment($b; $l; $t; $m): {body: $b, isMinimized: $m, author: {__typename: $t, login: $l}};
+  def comment($b; $l; $t): comment($b; $l; $t; false);
+  def comment($b; $l): comment($b; $l; "User"; false);
+  def comment($b): comment($b; "dev"; "User"; false);
 '
 
 # Add an issue. Usage: issue <number> [labels,comma,separated] [jq object of state, parent, subs, prs]
@@ -19,15 +23,17 @@ issue() {
            subIssues: {nodes: $o.subs}, closedByPullRequestsReferences: {nodes: $o.prs}}')"
 }
 
-# Add a pull request by "dev". Usage: pr <number> <issue it closes|-> [jq object of state, body, files, comments, reviews, requests, threads]
+# Add a pull request by "dev". Usage: pr <number> <issue it closes|-> [jq object of state, body, files, comments, reviews, opinionated, decision, requests, threads]
 pr() {
     fake_item "$(jq -cn --argjson n "$1" --arg closes "$2" "$NODE_DEFS (${3:-null}) as \$extra | "'
-        ({state: "OPEN", body: "", files: [], comments: [], reviews: [], requests: [], threads: []} + $extra) as $o
+        ({state: "OPEN", body: "", files: [], comments: [], reviews: [], opinionated: [], decision: null, requests: [], threads: []} + $extra) as $o
         | {__typename: "PullRequest", number: $n, state: $o.state, body: $o.body, author: {login: "dev"},
+           reviewDecision: $o.decision,
            files: {nodes: $o.files},
            comments: {nodes: $o.comments},
            closingIssuesReferences: {nodes: (if $closes == "-" then [] else [{number: ($closes | tonumber)}] end)},
            reviews: {nodes: $o.reviews},
+           latestOpinionatedReviews: {nodes: $o.opinionated},
            reviewRequests: {nodes: [$o.requests[] | {requestedReviewer: {__typename: "User", login: .}}]},
            reviewThreads: {nodes: $o.threads}}')"
 }
