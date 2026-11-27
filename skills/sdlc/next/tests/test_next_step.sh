@@ -411,3 +411,17 @@ test_two_writers_keep_the_current_routes() {
     assert_eq "$(next_line 22)" "Next: /sdlc:prove 22"
     assert_eq "$(gh_calls 'api repos')" ""
 }
+
+test_after_ship_fail_asks_the_solo_maintainer_to_approve() {
+    pr 9 5
+    assert_gate "approval: fail - no solo approval from dev" \
+        "Next: approve PR #9 (no solo approval from dev), then run /sdlc:ship 9"
+    assert_gate "$(printf 'approval: fail - no solo approval from dev\nchecks: fail - pending: test')" \
+        "Next: wait for CI on PR #9 (pending: test), then run /sdlc:ship 9"
+    assert_gate "$(printf 'approval: fail - no approval from a person\nchecks: fail - pending: test')" \
+        "Next: wait for a person to approve PR #9 (no approval from a person), then run /sdlc:ship 9"
+    assert_gate "approval: fail - changes requested by lead" \
+        "Next: wait for a person to approve PR #9 (changes requested by lead), then run /sdlc:ship 9"
+    assert_gate "approval: fail - GitHub review decision is REVIEW_REQUIRED" \
+        "Next: wait for a person to approve PR #9 (GitHub review decision is REVIEW_REQUIRED), then run /sdlc:ship 9"
+}

@@ -569,6 +569,7 @@ gate_step() {
     pr_number=$(get "$1" .number)
     qa=$(gate_detail "$2" qa)
     checks=$(gate_detail "$2" checks)
+    approval=$(gate_detail "$2" approval)
     if gate_failed "$2" threads; then
         skill handle-review "$pr_number"
     elif gate_failed "$2" qa && starts_with "$qa" "local HEAD"; then
@@ -577,10 +578,12 @@ gate_step() {
         skill prove "$pr_number"
     elif gate_failed "$2" checks && starts_with "$checks" failed; then
         wait_then "fix the failed checks on PR #$pr_number ($checks)" "ship $pr_number"
-    elif gate_failed "$2" approval; then
-        wait_then "wait for a person to approve PR #$pr_number ($(gate_detail "$2" approval))" "ship $pr_number"
+    elif gate_failed "$2" approval && ! starts_with "$approval" "no solo approval from "; then
+        wait_then "wait for a person to approve PR #$pr_number ($approval)" "ship $pr_number"
     elif gate_failed "$2" checks; then
         wait_then "wait for CI on PR #$pr_number ($checks)" "ship $pr_number"
+    elif gate_failed "$2" approval; then
+        wait_then "approve PR #$pr_number ($approval)" "ship $pr_number"
     else
         skill ship "$pr_number"
     fi
