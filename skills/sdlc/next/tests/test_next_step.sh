@@ -313,7 +313,7 @@ test_route_pull_request_states() {
     issue 4 review,size:S '{prs: [pull(9; "OPEN")]}'
     pr 9 4
     pr 10 4 '{reviews: [review("COMMENTED"; "dev"; "User")], threads: [thread(false; "bot")]}'
-    pr 11 4 '{reviews: [review("APPROVED"; "alice"; "User")]}'
+    pr 11 4 '{reviews: [review("APPROVED"; "alice"; "User")], opinionated: [review("APPROVED"; "alice"; "User")]}'
     pr 12 4 '{reviews: [review("COMMENTED"; "dev"; "User")], requests: ["alice"]}'
     pr 13 4 '{reviews: [review("COMMENTED"; "dev"; "User")]}'
     pr 16 4 '{reviews: [review("COMMENTED"; "dev"; "User")], comments: [qa("pass")]}'
@@ -334,7 +334,7 @@ test_route_pull_request_states() {
 }
 
 test_bot_approval_is_not_a_person() {
-    pr 15 4 '{reviews: [review("APPROVED"; "ci-bot"; "Bot")], comments: [qa("pass")]}'
+    pr 15 4 '{reviews: [review("APPROVED"; "ci-bot"; "Bot")], opinionated: [review("APPROVED"; "ci-bot"; "Bot")], comments: [qa("pass")]}'
     assert_eq "$(next_line 15)" "Next: /sdlc:document 4"
 }
 
@@ -424,4 +424,15 @@ test_after_ship_fail_asks_the_solo_maintainer_to_approve() {
         "Next: wait for a person to approve PR #9 (changes requested by lead), then run /sdlc:ship 9"
     assert_gate "approval: fail - GitHub review decision is REVIEW_REQUIRED" \
         "Next: wait for a person to approve PR #9 (GitHub review decision is REVIEW_REQUIRED), then run /sdlc:ship 9"
+}
+
+test_person_approval_uses_latest_reviews_and_blocking_reviews() {
+    pr 20 4 '{reviews: [review("APPROVED"; "alice"; "User"), review("CHANGES_REQUESTED"; "alice"; "User")], opinionated: [review("CHANGES_REQUESTED"; "alice"; "User")]}'
+    pr 21 4 '{reviews: [review("APPROVED"; "alice"; "User"), review("CHANGES_REQUESTED"; "lead"; "User")], opinionated: [review("APPROVED"; "alice"; "User"), review("CHANGES_REQUESTED"; "lead"; "User")]}'
+    pr 22 4 '{reviews: [review("APPROVED"; "alice"; "User")], opinionated: [review("APPROVED"; "alice"; "User")], decision: "REVIEW_REQUIRED"}'
+    pr 23 - '{body: "Spec for #4", reviews: [review("APPROVED"; "alice"; "User"), review("CHANGES_REQUESTED"; "lead"; "User")], opinionated: [review("APPROVED"; "alice"; "User"), review("CHANGES_REQUESTED"; "lead"; "User")], requests: ["bob"]}'
+    assert_eq "$(next_line 20)" "Next: /sdlc:prove 20"
+    assert_eq "$(next_line 21)" "Next: /sdlc:prove 21"
+    assert_eq "$(next_line 22)" "Next: /sdlc:prove 22"
+    assert_eq "$(next_line 23 --after verify-spec --result pass)" "Next: wait for review from @bob on PR #23, then run /sdlc:next 23"
 }

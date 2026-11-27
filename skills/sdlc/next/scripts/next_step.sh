@@ -79,9 +79,9 @@ JQ_DEFS='
   def author: .author.login // null;
   def threads_needing_reply: author as $a | [(.reviewThreads.nodes // [])[] | select((.isResolved | not) and (.comments.nodes | last | .author.login) != $a)];
   def reviews: .reviews.nodes // [];
-  def has_human_approval: author as $a | any(reviews[]; .state == "APPROVED" and .author.__typename == "User" and .author.login != $a);
   def requested_reviewers: [(.reviewRequests.nodes // [])[] | .requestedReviewer // {} | select(.__typename == "User") | .login];
   def opinionated_reviews: .latestOpinionatedReviews.nodes // [];
+  def has_human_approval: author as $a | any(opinionated_reviews[]; .state == "APPROVED" and .author.__typename == "User" and .author.login != $a);
   def has_blocking_review:
     any(opinionated_reviews[]; .state == "CHANGES_REQUESTED")
     or (.reviewDecision | IN("CHANGES_REQUESTED", "REVIEW_REQUIRED"));
@@ -238,10 +238,11 @@ is_solo_author() {
     printf '%s\n' "$collaborators" | jq -e --arg author "$1" "$SOLO_CHECK" > /dev/null 2>&1
 }
 
-# Exit 0 when a person approved the pull request, or its solo maintainer approved it in a PR comment.
+# Exit 0 when no review blocks the pull request and a person approved it, or its solo maintainer approved it in a PR comment.
 is_approved() {
+    holds "$1" 'has_blocking_review | not' || return 1
     holds "$1" has_human_approval && return 0
-    holds "$1" '(has_blocking_review | not) and has_solo_approval_comment' || return 1
+    holds "$1" has_solo_approval_comment || return 1
     is_solo_author "$(get "$1" author)"
 }
 
