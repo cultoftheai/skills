@@ -57,7 +57,7 @@ flowchart TD
 
 ## Output
 
-- The merged PR, with the approved head merged untouched. On a Code PR with `specs.on_ship` set to `archive` (default) or `delete`, or `task.keep` set to `false`, a cleanup PR `sdlc/cleanup-<pr>` that moves the task spec to `<specs.archive_path>/` or removes it (and the task folder) with `SDLC-Spec-Archive: true`, by the on-merge action or by `on_merge.sh`.
+- The merged PR, with the approved head merged untouched. On a Code PR with `specs.on_ship` set to `archive` (default) or `delete`, or `task.keep` set to `false`, a cleanup PR `sdlc/cleanup-<pr>` that moves the task spec to `<specs.archive_path>/` or removes it (and the task folder) with `SDLC-Spec-Archive: true`, by the on-merge action or by `on_merge.sh`. The on-merge action can open it only when the repository setting "Allow GitHub Actions to create and approve pull requests" is on; when it is off, the action fails after setting the stage. A cleanup PR opened by the action starts no CI.
 - The issue at `done` (or `shaped` for a Spec/Design PR), by the on-merge action or by `on_merge.sh`.
 - A report: the gate lines, the merge commit, and the cleanup PR (or why none was opened).
 - The `Next:` line as the last line.
