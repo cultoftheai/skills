@@ -54,7 +54,9 @@ flowchart LR
     slice[slice<br/>tasks] --> shape[shape<br/>SPEC.md]
     shape --> build[build]
 
-    build --> prove[prove<br/>QA.md]
+    build --> localreview[review --local<br/>ultra, fresh subagent]
+    localreview -->|fixes| build
+    localreview -->|clean verify| prove[prove<br/>QA.md]
     prove -->|fail| build
     prove -->|pass| submit[submit<br/>open PR]
     submit --> review[review<br/>fresh subagent]
@@ -82,10 +84,10 @@ flowchart LR
 | `frame` | A raw request must become a sized story (XS to XL). |
 | `slice` | A story (M, or L with its design) must be split into tasks, one PR each. |
 | `shape` | A task needs its `SPEC.md`, or an L story needs its `DESIGN.md`. |
-| `build` | A shaped task, or an XS edit, must be coded. |
+| `build` | A shaped task, or an XS edit, must be coded. Runs the local review before `prove`. |
 | `prove` | A change must be shown to work on its real surface. Records `QA.md`. |
 | `submit` | A proven change needs a PR. |
-| `review` | A PR, spec or design needs a review from a fresh context. |
+| `review` | A PR, a branch before its PR, spec or design needs a review from a fresh context. |
 | `respond` | A PR has review threads to answer. |
 | `document` | A reviewed PR needs the docs and ADRs updated before merge. |
 | `ship` | An approved PR passes the merge gates and can merge. |

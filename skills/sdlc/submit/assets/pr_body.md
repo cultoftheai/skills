@@ -12,6 +12,8 @@ Spec: `<spec-path>`
 
 Self-QA run on <short sha>: pass (local `<work-folder>/self-qa.md`).
 
+Local review: ran before QA.
+
 - <step -> what you saw, copied from the newest run>
 
 ## Risk
