@@ -2,6 +2,7 @@ name: sdlc-on-merge
 
 # pull_request_target gives a write token also for PRs from forks.
 # The job checks out the base branch, never the PR head.
+# The cleanup PR needs "Allow GitHub Actions to create and approve pull requests" in the repository settings.
 on:
   pull_request_target:
     types: [closed]
@@ -9,7 +10,7 @@ on:
 permissions:
   contents: write
   issues: write
-  pull-requests: read
+  pull-requests: write
 
 jobs:
   on-merge:
@@ -19,8 +20,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.ref }}
-      - name: Update issue stage
-        run: sh .sdlc/scripts/on_merge.sh "$PR"
+      - name: Update issue stage and open cleanup PR
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          sh .sdlc/scripts/on_merge.sh "$PR"
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
