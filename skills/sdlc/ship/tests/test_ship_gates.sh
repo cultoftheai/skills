@@ -380,6 +380,33 @@ test_multi_maintainer_author_approval_comment_fails() {
     assert_eq "$(gate_line approval)" "approval: fail - no approval from a person"
 }
 
+test_solo_auto_approval_comment_passes() {
+    solo_pr '{comments: [comment(":robot: [approval] approved by --auto for @dev"; "dev")]}'
+    assert_eq "$(gate_line approval)" "approval: pass - approved by dev (solo approval)"
+}
+
+test_solo_auto_approval_comment_with_custom_review_prefix() {
+    setup '{"review": {"prefix": "[bot]"}}'
+    commit_files src/app.txt
+    fake_collaborators '[{"login":"dev","type":"User","permissions":{"push":true}}]'
+    fake_pr '{reviews: [], decision: null, comments: [comment("[bot] [approval] approved by --auto for @dev"; "dev")]}'
+    assert_eq "$(gate_line approval)" "approval: pass - approved by dev (solo approval)"
+    fake_pr '{reviews: [], decision: null, comments: [comment(":robot: [approval] approved by --auto for @dev"; "dev")]}'
+    assert_eq "$(gate_line approval)" "approval: fail - no solo approval from dev"
+}
+
+test_solo_auto_approval_comment_keeps_blocking_review_gates() {
+    solo_pr '{reviews: [review("CHANGES_REQUESTED"; "qa")], decision: "CHANGES_REQUESTED", comments: [comment(":robot: [approval] approved by --auto for @dev"; "dev")]}'
+    assert_eq "$(gate_line approval)" "approval: fail - changes requested by qa"
+    fake_pr '{reviews: [], decision: "REVIEW_REQUIRED", comments: [comment(":robot: [approval] approved by --auto for @dev"; "dev")]}'
+    assert_eq "$(gate_line approval)" "approval: fail - GitHub review decision is REVIEW_REQUIRED"
+}
+
+test_multi_maintainer_auto_approval_comment_fails() {
+    ready_pr '{reviews: [], decision: null, comments: [comment(":robot: [approval] approved by --auto for @dev"; "dev")]}'
+    assert_eq "$(gate_line approval)" "approval: fail - no approval from a person"
+}
+
 test_existing_human_approval_skips_collaborators_api() {
     ready_pr
     assert_eq "$(gate_line approval)" "approval: pass - approved by lead"
