@@ -1,10 +1,11 @@
 # Tests for on_merge.sh. gh and stage.sh are faked.
 
-# Make the fake gh answer "gh pr view" with the state, closed issues, and optional body. The base branch is main.
+# Make the fake gh answer "gh pr view" with the state, closed issues, optional body and optional changed files. The base branch is main.
 pr() {
-    fake_gh "pr view" 0 "$(jq -cn --arg state "$1" --arg issues "${2:-}" --arg body "${3:-}" \
+    fake_gh "pr view" 0 "$(jq -cn --arg state "$1" --arg issues "${2:-}" --arg body "${3:-}" --arg files "${4:-src/app.sh}" \
         '{state: $state, body: $body, baseRefName: "main",
-          closingIssuesReferences: [$issues | split(" ")[] | select(. != "") | {number: tonumber}]}')"
+          closingIssuesReferences: [$issues | split(" ")[] | select(. != "") | {number: tonumber}],
+          files: [$files | split(" ")[] | select(. != "") | {path: .}]}')"
 }
 
 # Make the fake gh find no open cleanup PR and open a new one.
@@ -99,12 +100,12 @@ test_archive_opens_cleanup_pr_with_the_spec_moved() {
     no_open_cleanup_pr
     output=$("$SH" "$ON_MERGE" 12) || { printf '%s\n' "$output"; exit 1; }
     assert_eq "$output" "Set done on #7.
-Opened cleanup PR https://github.com/o/r/pull/13."
-    assert_eq "$(origin_files sdlc/cleanup-12 | tr '\n' ,)" \
+Opened cleanup PR https://github.com/o/r/pull/13 for #7."
+    assert_eq "$(origin_files sdlc/7-cleanup | tr '\n' ,)" \
         ".sdlc/settings.json,.sdlc/specs/7-foo-design.md,.sdlc/specs/70-bar.md,.sdlc/specs/archived/7-foo.md,.sdlc/specs/archived/7-old.md,"
-    assert_contains "$(git --git-dir="$TEST_TMP/origin.git" log -1 --format=%B sdlc/cleanup-12)" "SDLC-Spec-Archive: true"
+    assert_contains "$(git --git-dir="$TEST_TMP/origin.git" log -1 --format=%B sdlc/7-cleanup)" "SDLC-Spec-Archive: true"
     log=$(cat "$TEST_TMP/gh.log")
-    assert_contains "$log" "pr create --base main --head sdlc/cleanup-12"
+    assert_contains "$log" "pr create --base main --head sdlc/7-cleanup --title Clean up spec for #7"
     assert_contains "$log" "Cleanup for PR #12"
     case "$log" in *Closes*) echo "PR body must not close an issue"; exit 1 ;; esac
     assert_eq "$(git status --porcelain)" ""
@@ -117,7 +118,7 @@ test_delete_opens_cleanup_pr_without_the_spec() {
     pr MERGED 7
     no_open_cleanup_pr
     "$SH" "$ON_MERGE" 12 > /dev/null || exit 1
-    assert_eq "$(origin_files sdlc/cleanup-12 | tr '\n' ,)" ".sdlc/settings.json,.sdlc/specs/8-bar.md,"
+    assert_eq "$(origin_files sdlc/7-cleanup | tr '\n' ,)" ".sdlc/settings.json,.sdlc/specs/8-bar.md,"
 }
 
 test_task_keep_false_removes_the_task_folder() {
@@ -126,7 +127,7 @@ test_task_keep_false_removes_the_task_folder() {
     pr MERGED 7
     no_open_cleanup_pr
     output=$("$SH" "$ON_MERGE" 12) || { printf '%s\n' "$output"; exit 1; }
-    assert_eq "$(origin_files sdlc/cleanup-12 | tr '\n' ,)" ".sdlc/settings.json,.sdlc/specs/7-foo.md,tasks/8/SPEC.md,"
+    assert_eq "$(origin_files sdlc/7-cleanup | tr '\n' ,)" ".sdlc/settings.json,.sdlc/specs/7-foo.md,tasks/8/SPEC.md,"
 }
 
 test_keep_is_nothing_to_clean_up() {
@@ -143,7 +144,7 @@ test_no_matching_spec_is_nothing_to_clean_up() {
     pr MERGED 7
     output=$("$SH" "$ON_MERGE" 12) || exit 1
     assert_eq "$output" "Set done on #7.
-Nothing to clean up."
+Nothing to clean up for #7."
     case "$(cat "$TEST_TMP/gh.log")" in *"pr create"*) echo "no PR expected"; exit 1 ;; esac
 }
 
@@ -161,8 +162,8 @@ test_open_cleanup_pr_is_not_opened_again() {
     fake_gh "pr list" 0 '[{"number": 13}]'
     output=$("$SH" "$ON_MERGE" 12) || exit 1
     assert_eq "$output" "Set done on #7.
-Cleanup PR #13 is already open."
-    assert_contains "$(cat "$TEST_TMP/gh.log")" "pr list --head sdlc/cleanup-12 --base main --state open"
+Cleanup PR #13 for #7 is already open."
+    assert_contains "$(cat "$TEST_TMP/gh.log")" "pr list --head sdlc/7-cleanup --base main --state open"
     assert_eq "$(git --git-dir="$TEST_TMP/origin.git" branch --list 'sdlc/*')" ""
 }
 
@@ -173,6 +174,30 @@ test_failed_cleanup_pr_fails_and_removes_the_worktree() {
     fake_gh "pr create" 1 "no permission"
     output=$("$SH" "$ON_MERGE" 12)
     assert_eq $? 1
-    assert_contains "$output" "cannot open cleanup PR for PR #12: no permission"
+    assert_contains "$output" "cannot open cleanup PR for #7: no permission"
     assert_eq "$(git worktree list | wc -l | tr -d ' ')" 1
+}
+
+test_each_closed_issue_gets_its_own_cleanup_pr() {
+    git_repo '{}' .sdlc/specs/7-foo.md .sdlc/specs/8-bar.md .sdlc/specs/9-baz.md
+    pr MERGED "7 8"
+    no_open_cleanup_pr
+    output=$("$SH" "$ON_MERGE" 12) || { printf '%s\n' "$output"; exit 1; }
+    assert_eq "$output" "Set done on #7, #8.
+Opened cleanup PR https://github.com/o/r/pull/13 for #7.
+Opened cleanup PR https://github.com/o/r/pull/13 for #8."
+    assert_eq "$(origin_files sdlc/7-cleanup | tr '\n' ,)" \
+        ".sdlc/settings.json,.sdlc/specs/8-bar.md,.sdlc/specs/9-baz.md,.sdlc/specs/archived/7-foo.md,"
+    assert_eq "$(origin_files sdlc/8-cleanup | tr '\n' ,)" \
+        ".sdlc/settings.json,.sdlc/specs/7-foo.md,.sdlc/specs/9-baz.md,.sdlc/specs/archived/8-bar.md,"
+    assert_eq "$(git worktree list | wc -l | tr -d ' ')" 1
+}
+
+test_pr_changing_only_specs_opens_no_cleanup_pr() {
+    git_repo '{"specs": {"path": "./.sdlc/specs/"}}' .sdlc/specs/7-foo.md
+    pr MERGED 7 "Spec for #7. Closes #7" ".sdlc/specs/7-foo.md"
+    output=$("$SH" "$ON_MERGE" 12) || exit 1
+    assert_eq "$output" "Set done on #7.
+Only specs changed. Nothing to clean up."
+    case "$(cat "$TEST_TMP/gh.log")" in *"pr list"* | *"pr create"*) echo "no cleanup expected"; exit 1 ;; esac
 }

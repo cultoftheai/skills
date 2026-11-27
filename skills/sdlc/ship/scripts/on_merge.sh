@@ -1,7 +1,8 @@
 #!/bin/sh
 # Set the stage to done for each issue a merged PR closes, or shaped for a merged Spec/Design PR.
-# For a merged Code PR, also open a cleanup PR sdlc/cleanup-<pr> against its base branch that
-# applies specs.on_ship to the task specs and removes the task folders when task.keep is false.
+# For a merged Code PR that changes more than specs, also open one cleanup PR sdlc/<issue>-cleanup
+# per closed issue against its base branch. It applies specs.on_ship to the task spec and removes
+# the task folder when task.keep is false.
 #
 # Usage: on_merge.sh <pr>
 #
@@ -87,16 +88,33 @@ run_git() {
     err=$(git "$@" 2>&1 >/dev/null) || fail "git $1 failed: $err"
 }
 
-# Print the task specs (on archive or delete) and task folders (when task.keep is false) of the issues on origin/<base>.
+# Print the task specs (on archive or delete) and the task folder (when task.keep is false) of the issue on origin/<base>.
 cleanup_paths() {
-    for issue in $2; do
-        case "$ON_SHIP" in
-            archive | delete) task_specs "$1" "$issue" ;;
+    case "$ON_SHIP" in
+        archive | delete) task_specs "$1" "$2" ;;
+    esac
+    if [ "$KEEP" = false ] && [ -n "$(git ls-tree --name-only "origin/$1" -- "$TASKS/$2")" ]; then
+        printf '%s\n' "$TASKS/$2"
+    fi
+}
+
+# Print the changed files of the PR, one per line.
+pr_files() {
+    err=$(gh pr view "$1" --json files --jq '(.files // [])[].path' 2>&1 >&4) || fail "cannot read files of PR #$1: $err"
+} 4>&1
+
+# Succeed when the PR changes at least one file and only files under <specs.path>/.
+specs_only() {
+    files=$(pr_files "$1") || exit 1
+    [ -n "$files" ] || return 1
+    while IFS= read -r file; do
+        case "$file" in
+            "$SPECS"/*) ;;
+            *) return 1 ;;
         esac
-        if [ "$KEEP" = false ] && [ -n "$(git ls-tree --name-only "origin/$1" -- "$TASKS/$issue")" ]; then
-            printf '%s\n' "$TASKS/$issue"
-        fi
-    done
+    done <<FILES
+$files
+FILES
 }
 
 # Print the files <specs.path>/<issue>-*.md on origin/<base>, without *-design.md.
@@ -132,7 +150,7 @@ commit_cleanup() {
     done <<PATHS
 $2
 PATHS
-    run_git -C "$WORKTREE" commit -q -m "Clean up spec for PR #$1" -m "SDLC-Spec-Archive: true"
+    run_git -C "$WORKTREE" commit -q -m "Clean up spec for #$1" -m "SDLC-Spec-Archive: true"
 }
 
 # Move the spec to <specs.archive_path>/ on archive, or remove it on delete.
@@ -145,37 +163,50 @@ remove_spec() {
     fi
 }
 
-# Open the cleanup PR from the branch into the base branch and print its URL.
+# Open the cleanup PR for the issue from the branch into the base branch and print its URL.
 create_cleanup_pr() {
-    err=$(gh pr create --base "$3" --head "$2" --title "Clean up spec for PR #$1" \
-        --body "Cleanup for PR #$1: applies specs.on_ship ($ON_SHIP) and task.keep ($KEEP) after the merge." 2>&1 >&4) \
-        || fail "cannot open cleanup PR for PR #$1: $err"
+    err=$(gh pr create --base "$3" --head "$2" --title "Clean up spec for #$4" \
+        --body "Cleanup for PR #$1: applies specs.on_ship ($ON_SHIP) and task.keep ($KEEP) to #$4 after the merge." 2>&1 >&4) \
+        || fail "cannot open cleanup PR for #$4: $err"
 } 4>&1
 
-# Open a cleanup PR for the merged PR into the base branch for the issues, unless there is nothing to do or it is open.
+# Open a cleanup PR per closed issue for the merged PR into the base branch, unless there is nothing to do.
 clean_up() {
     if [ "$ON_SHIP" != archive ] && [ "$ON_SHIP" != delete ] && [ "$KEEP" != false ]; then
         printf 'Nothing to clean up.\n'
         return
     fi
-    run_git fetch -q origin "+refs/heads/$2:refs/remotes/origin/$2"
-    paths=$(cleanup_paths "$2" "$3")
-    if [ -z "$paths" ]; then
-        printf 'Nothing to clean up.\n'
+    if specs_only "$1"; then
+        printf 'Only specs changed. Nothing to clean up.\n'
         return
     fi
-    branch="sdlc/cleanup-$1"
+    run_git fetch -q origin "+refs/heads/$2:refs/remotes/origin/$2"
+    for issue in $3; do
+        clean_up_issue "$1" "$2" "$issue"
+    done
+}
+
+# Open the cleanup PR sdlc/<issue>-cleanup for the issue, unless nothing matches or it is already open.
+clean_up_issue() {
+    paths=$(cleanup_paths "$2" "$3")
+    if [ -z "$paths" ]; then
+        printf 'Nothing to clean up for #%s.\n' "$3"
+        return
+    fi
+    branch="sdlc/$3-cleanup"
     open=$(open_cleanup_pr "$branch" "$2") || exit 1
     if [ -n "$open" ]; then
-        printf 'Cleanup PR #%s is already open.\n' "$open"
+        printf 'Cleanup PR #%s for #%s is already open.\n' "$open" "$3"
         return
     fi
     WORKTREE=$(mktemp -d)/worktree
     run_git worktree add -q --detach "$WORKTREE" "origin/$2"
-    commit_cleanup "$1" "$paths"
+    commit_cleanup "$3" "$paths"
     run_git -C "$WORKTREE" push -q --force origin "HEAD:refs/heads/$branch"
-    url=$(create_cleanup_pr "$1" "$branch" "$2") || exit 1
-    printf 'Opened cleanup PR %s.\n' "$url"
+    url=$(create_cleanup_pr "$1" "$branch" "$2" "$3") || exit 1
+    remove_worktree
+    WORKTREE=''
+    printf 'Opened cleanup PR %s for #%s.\n' "$url" "$3"
 }
 
 if [ $# -ne 1 ]; then
