@@ -36,7 +36,7 @@ Then install `sdlc` and `misc` from `/plugins` and start a new session.
 3. Run `/sdlc:next`. It reads where the issue or PR stands and runs the skill that comes next. Add `--run` to continue until a person must act, or `--auto` to skip the questions at each gate.
 4. You can also type any skill directly, for example `/sdlc:review 42`. Every skill ends with a `Next:` line that names the command to run after it.
 
-People stay in the loop at these points: they approve the story, approve the PR, and confirm the merge (unless `--auto`).
+People stay in the loop at these points: they approve the story, approve the PR, and confirm the merge (unless `--auto`). In a solo-maintainer repository, `ship --auto` also counts as the PR approval and records that on the PR.
 
 ## Skill order
 
