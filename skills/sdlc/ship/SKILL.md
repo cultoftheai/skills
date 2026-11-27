@@ -35,6 +35,7 @@ flowchart TD
     A -->|No| H
     B --> C
     C -->|Yes| D
+    C -->|Solo approved| B
     C -->|No| H
     D -->|Yes| E
     D -->|No| F
@@ -46,9 +47,9 @@ flowchart TD
 
 ## Flow steps
 
-1. **Settings exist?** - If `.sdlc/settings.json` exists, read `specs.path` (fallback `.sdlc/specs`), `specs.archive_path` (fallback `.sdlc/specs/archived`), `specs.on_ship` (fallback `archive`), `task.path` (fallback `.sdlc/task`), and `task.keep` (fallback `true`), and go to step 2. If not, stop and print `Next: /setup` as the last line.
-2. **Run gates** - Get the PR with `gh pr view [pr] --json number,headRefName,body,closingIssuesReferences` and inspect `gh pr diff <pr> --name-only`. Fast-forward the PR branch to the PR head and do not push local commits. From the repository root, run `sh .sdlc/scripts/ship_gates.sh <pr>` and show its output.
-3. **Gates pass?** - If the exit code is 0, go to step 4. If not, name each failed gate and who can clear it, then go to step 8 with result `fail`.
+1. **Settings exist?** - If `.sdlc/settings.json` exists, read `review.prefix` (fallback `:robot:`), `specs.path` (fallback `.sdlc/specs`), `specs.archive_path` (fallback `.sdlc/specs/archived`), `specs.on_ship` (fallback `archive`), `task.path` (fallback `.sdlc/task`), and `task.keep` (fallback `true`), and go to step 2. If not, stop and print `Next: /setup` as the last line.
+2. **Run gates** - Get the PR with `gh pr view [pr] --json number,headRefName,body,closingIssuesReferences,author` and inspect `gh pr diff <pr> --name-only`. Fast-forward the PR branch to the PR head and do not push local commits. From the repository root, run `sh .sdlc/scripts/ship_gates.sh <pr>` and show its output.
+3. **Gates pass?** - If the exit code is 0, go to step 4. If `approval` is the only failed gate, its line reads `approval: fail - no solo approval from <author>`, and `--auto` is absent, ask the maintainer in chat to approve PR `#<pr>`: on yes, post `<review.prefix> [approval] approved in chat by @<author>` with `gh pr comment <pr> --body "<review.prefix> [approval] approved in chat by @<author>"` (where `<author>` is the PR author login from step 2) and go back to step 2; on no, name the failed approval gate and go to step 8 with result `fail`. For any other failure, name each failed gate and who can clear it, then go to step 8 with result `fail`.
 4. **Spec or folder to update?** - Skip on Spec/Design-only PRs (every changed file in `gh pr diff <pr> --name-only` is under `<specs.path>/`, or `closingIssuesReferences` is empty with `Spec for #<id>` / `Design for #<id>` in the PR body). On a Code PR closing `<issue>`, check for a task spec `<specs.path>/<issue>-*.md` (excluding `*-design.md` and `<specs.archive_path>/`) when `specs.on_ship` is `archive` or `delete`, or a legacy `<task.path>/<issue>/` folder when `task.keep` is `false`. If any applies, go to step 5. If not, go to step 6.
 5. **Update spec or folder** - Apply `specs.on_ship` to the matching task spec: for `archive`, run `mkdir -p <specs.archive_path>` and `git mv <spec> <specs.archive_path>/`; for `delete`, run `git rm <spec>`. If `task.keep` is `false` and `<task.path>/<issue>/` exists, remove it with `git rm -r <task.path>/<issue>/`. Commit the change with trailer `SDLC-Spec-Archive: true`, push to the PR branch, wait with `gh pr checks <pr> --watch`, and go to step 2.
 6. **Merge confirmed?** - Choose the first merge method that `gh repo view --json squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed` allows, in that order. Without `--auto`, show the gate lines and the method, and ask the person to type `merge`. Any other answer goes to step 8 with result `fail`. With `--auto`, do not ask. Comment on the issue, or on the PR when it closes no issue, under `## Assumptions`: merged without a typed confirmation, and the method you chose.
@@ -57,8 +58,8 @@ flowchart TD
 
 ## Rules
 
-1. Never merge without a person's approval on the PR. `--auto` removes the question, not a gate.
-2. Do not approve the PR, dismiss a review or resolve a thread yourself to make a gate pass.
+1. Never merge without a person's approval on the PR (a non-author person's GitHub approval, or in a solo-maintainer repository the PR author's approval comment on the PR). `--auto` removes the merge confirmation, not a gate.
+2. Do not approve the PR, dismiss a review or resolve a thread yourself to make a gate pass; in a solo-maintainer repository, post the chat approval comment only after the maintainer explicitly approves in chat (step 3).
 3. Do not merge with `--admin`, and do not pass this skill's `--auto` to `gh pr merge`.
 
 ## Output
