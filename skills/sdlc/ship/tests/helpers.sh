@@ -13,7 +13,8 @@ cat > "$TEST_TMP/bin/gh" <<'FAKE'
 #!/bin/sh
 printf '%s\n' "$*" | tr '\n' ' ' >> "$TEST_TMP/gh.log"
 echo >> "$TEST_TMP/gh.log"
-rule="$TEST_TMP/gh/$1_$2"
+key=$(printf '%s\n' "$1 ${2:-}" | LC_ALL=C sed 's/[^A-Za-z0-9]/_/g')
+rule="$TEST_TMP/gh/$key"
 if [ ! -f "$rule.code" ]; then
     echo "unexpected command: gh $*" >&2
     exit 99
@@ -50,8 +51,9 @@ done
 
 # Make the fake gh answer "gh <command> <subcommand> ..." with the exit code and the output, on stderr when the code is not 0.
 fake_gh() {
-    printf '%s\n' "$2" > "$TEST_TMP/gh/$(echo "$1" | tr ' ' _).code"
-    printf '%s\n' "${3:-}" > "$TEST_TMP/gh/$(echo "$1" | tr ' ' _).out"
+    key=$(printf '%s\n' "$1" | LC_ALL=C sed 's/[^A-Za-z0-9]/_/g')
+    printf '%s\n' "$2" > "$TEST_TMP/gh/$key.code"
+    printf '%s\n' "${3:-}" > "$TEST_TMP/gh/$key.out"
 }
 
 # Make the fake sibling script answer with the exit code and stdout.

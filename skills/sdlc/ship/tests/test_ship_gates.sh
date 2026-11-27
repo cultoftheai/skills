@@ -1,14 +1,28 @@
 # Tests for ship_gates.sh. gh is faked; git runs on a real repository.
 
+COLLAB_API='api repos/{owner}/{repo}/collaborators?affiliation=all&permission=push&per_page=100'
+
 DEFS='
   def review($s; $l; $t): {state: $s, author: {__typename: $t, login: $l}};
   def review($s; $l): review($s; $l; "User");
   def thread($resolved; $l): {isResolved: $resolved, comments: {nodes: [{url: "https://example.test/\($l)", author: {login: $l}}]}};
-  def comment($b): {body: $b};
+  def comment($b; $l; $t; $m): {body: $b, isMinimized: $m, author: {__typename: $t, login: $l}};
+  def comment($b; $l; $t): comment($b; $l; $t; false);
+  def comment($b; $l): comment($b; $l; "User"; false);
+  def comment($b): comment($b; "dev"; "User"; false);
   def file($p): {path: $p};
 '
 
-# Create a repository with settings, green checks, and an initial commit.
+# Make the fake gh answer the collaborators endpoint with exit code (default 0) and output.
+fake_collaborators() {
+    if [ $# -eq 1 ]; then
+        fake_gh "$COLLAB_API" 0 "$1"
+    else
+        fake_gh "$COLLAB_API" "$1" "$2"
+    fi
+}
+
+# Create a repository with settings, green checks, two writers, and an initial commit.
 setup() {
     git init -q repo
     cd repo || exit 1
@@ -18,6 +32,7 @@ setup() {
     default_settings='{}'
     printf '%s\n' "${1:-$default_settings}" > .sdlc/settings.json
     fake_gh "pr checks" 0 '[{"name": "ci", "bucket": "pass"}]'
+    fake_collaborators '[{"login":"dev","type":"User","permissions":{"push":true}},{"login":"lead","type":"User","permissions":{"push":true}}]'
 }
 
 # Commit a new file at each path. Optional first arg "--trailer <key: val>" adds a git trailer.
@@ -50,6 +65,7 @@ fake_pr() {
     fake_gh "api graphql" 0 "$(jq -cn --arg head "$(git rev-parse HEAD)" "$DEFS (${1:-null}) as \$extra | "'
         ({
           head: $head,
+          author: {login: "dev"},
           reviews: [review("APPROVED"; "lead")],
           threads: [],
           decision: "APPROVED",
@@ -57,7 +73,7 @@ fake_pr() {
           comments: [comment(":robot: [qa] pass\nCommit: \($head)\nDate: 2026-11-26T10:00:00Z\n\n### Checks\n- cmd -> ok")]
         } + $extra) as $o
         | {data: {repository: {pullRequest: {
-            headRefOid: $o.head, reviewDecision: $o.decision, author: {login: "dev"},
+            headRefOid: $o.head, reviewDecision: $o.decision, author: $o.author,
             files: {nodes: $o.files},
             comments: {nodes: $o.comments},
             latestOpinionatedReviews: {nodes: $o.reviews},
@@ -69,6 +85,15 @@ ready_pr() {
     setup
     commit_files src/app.txt
     fake_pr "${1:-null}"
+}
+
+# Set up a solo-maintainer repo with one committed file and an unreviewed PR by "dev" (decision null).
+solo_pr() {
+    setup
+    commit_files src/app.txt
+    fake_collaborators '[{"login":"dev","type":"User","permissions":{"push":true}}]'
+    extra=${1:-'{}'}
+    fake_pr "({reviews: [], decision: null} + ($extra))"
 }
 
 # Print the line of the named gate from a run for PR 12.
@@ -272,4 +297,94 @@ test_missing_settings_fails() {
     output=$("$SH" "$GATES" 12)
     assert_eq $? 1
     assert_eq "$output" "ship_gates failed: cannot read .sdlc/settings.json"
+}
+
+test_solo_detection_ignores_bots_and_read_triage_users() {
+    solo_pr '{comments: [comment("LGTM"; "dev")]}'
+    fake_collaborators '[{"login":"dev","type":"User","permissions":{"push":true}},{"login":"dependabot","type":"Bot","permissions":{"push":true}},{"login":"reader","type":"User","permissions":{"push":false,"pull":true}},{"login":"triager","type":"User","permissions":{"push":false,"triage":true}}]'
+    assert_eq "$(gate_line approval)" "approval: pass - approved by dev (solo approval)"
+}
+
+test_solo_detection_rejects_external_and_bot_pr_authors() {
+    solo_pr '{author: {login: "outsider"}, comments: [comment("/approve"; "outsider")]}'
+    assert_eq "$(gate_line approval)" "approval: fail - no approval from a person"
+    fake_collaborators '[{"login":"dev","type":"User","permissions":{"push":true}},{"login":"ci-app","type":"Bot","permissions":{"push":true}}]'
+    fake_pr '{author: {login: "ci-app"}, reviews: [], decision: null, comments: [comment("LGTM"; "ci-app"; "Bot")]}'
+    assert_eq "$(gate_line approval)" "approval: fail - no approval from a person"
+    fake_collaborators '[{"login":"ci-app","type":"Bot","permissions":{"push":true}}]'
+    assert_eq "$(gate_line approval)" "approval: fail - no approval from a person"
+}
+
+test_solo_detection_fails_closed_on_error_non_array_and_page_limit() {
+    solo_pr '{comments: [comment("LGTM"; "dev")]}'
+    fake_collaborators 1 "HTTP 403"
+    assert_eq "$(gate_line approval)" "approval: fail - no approval from a person"
+    fake_collaborators '{"message":"forbidden"}'
+    assert_eq "$(gate_line approval)" "approval: fail - no approval from a person"
+    fake_collaborators "$(jq -cn '[{login:"dev",type:"User",permissions:{push:true}}] + [range(99) | {login:"b\(.)",type:"Bot",permissions:{push:true}}]')"
+    assert_eq "$(gate_line approval)" "approval: fail - no approval from a person"
+}
+
+test_solo_author_approval_comments_pass() {
+    solo_pr
+    for body in "LGTM" "/approve" "Approved!" "$(printf '  \r\n  approve.  \r\nmore notes')" ":robot: [approval] approved in chat by @dev"; do
+        fake_pr "$(jq -cn --arg body "$body" "$DEFS"' {reviews: [], decision: null, comments: [comment($body; "dev")]}')"
+        assert_eq "$(gate_line approval)" "approval: pass - approved by dev (solo approval)"
+    done
+}
+
+test_solo_custom_review_prefix_approval_comment() {
+    setup '{"review": {"prefix": "[bot]"}}'
+    commit_files src/app.txt
+    fake_collaborators '[{"login":"dev","type":"User","permissions":{"push":true}}]'
+    fake_pr '{reviews: [], decision: null, comments: [comment("[bot] [approval] approved in chat by @dev"; "dev")]}'
+    assert_eq "$(gate_line approval)" "approval: pass - approved by dev (solo approval)"
+    fake_pr '{reviews: [], decision: null, comments: [comment(":robot: [approval] approved in chat by @dev"; "dev")]}'
+    assert_eq "$(gate_line approval)" "approval: fail - no solo approval from dev"
+}
+
+test_solo_non_approval_comments_fail() {
+    solo_pr
+    assert_eq "$(gate_line approval)" "approval: fail - no solo approval from dev"
+    for expr in \
+        'comment("Looks good, ready to merge"; "dev")' \
+        'comment("Note\n/approve"; "dev")' \
+        'comment("LGTM"; "dev"; "User"; true)' \
+        'comment("LGTM"; "other")' \
+        'comment("LGTM"; "dev"; "Bot")'; do
+        fake_pr "{reviews: [], decision: null, comments: [$expr]}"
+        assert_eq "$(gate_line approval)" "approval: fail - no solo approval from dev"
+    done
+}
+
+test_solo_changes_requested_still_fails() {
+    solo_pr '{reviews: [review("CHANGES_REQUESTED"; "qa")], decision: "CHANGES_REQUESTED", comments: [comment("LGTM"; "dev")]}'
+    assert_eq "$(gate_line approval)" "approval: fail - changes requested by qa"
+    if grep -q collaborators "$TEST_TMP/gh.log"; then
+        printf 'expected collaborators not to be called\n'
+        exit 1
+    fi
+}
+
+test_solo_review_required_still_fails() {
+    solo_pr '{decision: "REVIEW_REQUIRED", comments: [comment("LGTM"; "dev")]}'
+    assert_eq "$(gate_line approval)" "approval: fail - GitHub review decision is REVIEW_REQUIRED"
+    fake_pr '{reviews: [], decision: "REVIEW_REQUIRED", comments: []}'
+    assert_eq "$(gate_line approval)" "approval: fail - GitHub review decision is REVIEW_REQUIRED"
+    fake_pr '{reviews: [], decision: "CHANGES_REQUESTED", comments: [comment("LGTM"; "dev")]}'
+    assert_eq "$(gate_line approval)" "approval: fail - GitHub review decision is CHANGES_REQUESTED"
+}
+
+test_multi_maintainer_author_approval_comment_fails() {
+    ready_pr '{reviews: [], decision: null, comments: [comment("LGTM"; "dev"), comment(":robot: [approval] approved in chat by @dev"; "dev")]}'
+    assert_eq "$(gate_line approval)" "approval: fail - no approval from a person"
+}
+
+test_existing_human_approval_skips_collaborators_api() {
+    ready_pr
+    assert_eq "$(gate_line approval)" "approval: pass - approved by lead"
+    if grep -q collaborators "$TEST_TMP/gh.log"; then
+        printf 'expected collaborators not to be called\n'
+        exit 1
+    fi
 }
