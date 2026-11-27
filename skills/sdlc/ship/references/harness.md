@@ -1,6 +1,6 @@
 # Remove the worktree that the session runs in
 
-Read this file when the session runs inside the worktree that step 7 removes. The shell cannot stay in a directory that you delete.
+Read this file when the session runs inside the worktree that step 5 removes. The shell cannot stay in a directory that you delete.
 
 ## Claude Code
 

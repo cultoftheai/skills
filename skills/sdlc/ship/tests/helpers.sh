@@ -82,3 +82,32 @@ assert_contains() {
         *) printf 'expected to contain: %s\n                got: %s\n' "$2" "$1"; exit 1 ;;
     esac
 }
+
+export GIT_CONFIG_GLOBAL="$TEST_TMP/gitconfig" GIT_CONFIG_NOSYSTEM=1
+export GIT_AUTHOR_NAME=test GIT_AUTHOR_EMAIL=test@example.com
+export GIT_COMMITTER_NAME=test GIT_COMMITTER_EMAIL=test@example.com
+: > "$GIT_CONFIG_GLOBAL"
+
+# Make work/ a clone of origin.git with the settings JSON and the files on main, and cd into it.
+git_repo() {
+    settings=$1
+    shift
+    git init -q --bare -b main "$TEST_TMP/origin.git"
+    git init -q -b main "$TEST_TMP/work"
+    cd "$TEST_TMP/work" || exit 1
+    git remote add origin "$TEST_TMP/origin.git"
+    mkdir -p .sdlc
+    printf '%s\n' "$settings" > .sdlc/settings.json
+    for file in "$@"; do
+        mkdir -p "$(dirname "$file")"
+        printf '%s\n' "$file" > "$file"
+    done
+    git add -A
+    git commit -qm init
+    git push -q origin main
+}
+
+# Print the files of the branch in origin.git, one per line.
+origin_files() {
+    git --git-dir="$TEST_TMP/origin.git" ls-tree -r --name-only "$1"
+}

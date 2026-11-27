@@ -1,12 +1,12 @@
 ---
 name: ship
-description: Use when an approved pull request is ready to merge. Checks the merge gates (a person's approval, green checks, no unanswered review thread, QA evidence for the head commit), handles the task spec on merge per specs.on_ship (archiving to .sdlc/specs/archived/, deleting, or keeping), merges, and deletes the branch and worktree. Triggers - ship this PR, merge the PR, ship it, land this. Not for opening a PR or reviewing one.
+description: Use when an approved pull request is ready to merge. Checks the merge gates (a person's approval, green checks, no unanswered review thread, QA evidence for the head commit), merges the approved head untouched, leaves the task spec to a post-merge cleanup PR per specs.on_ship (archiving to .sdlc/specs/archived/, deleting, or keeping), and deletes the branch and worktree. Triggers - ship this PR, merge the PR, ship it, land this. Not for opening a PR or reviewing one.
 argument-hint: "[pr] [--auto]"
 ---
 
 ## Dependencies
 
-- **(cli tool) git** [Must] - Moves or removes the task spec per `specs.on_ship` and deletes the branch and worktree.
+- **(cli tool) git** [Must] - Deletes the branch and worktree. `on_merge.sh` uses it to make the cleanup PR.
 - **(cli tool) gh** [Must] - GitHub official CLI. Reads the gates and merges the PR.
 - **(cli tool) jq** [Must] - `ship_gates.sh` reads the PR and the settings with it.
 
@@ -25,36 +25,29 @@ flowchart TD
     A{1. Settings exist?}
     B[2. Run gates]
     C{3. Gates pass?}
-    D{4. Spec or folder to update?}
-    E[5. Update spec or folder]
-    F{6. Merge confirmed?}
-    G[7. Merge and clean up]
-    H[8. Hand off]
+    D{4. Merge confirmed?}
+    E[5. Merge and clean up]
+    F[6. Hand off]
 
     A -->|Yes| B
-    A -->|No| H
+    A -->|No| F
     B --> C
     C -->|Yes| D
     C -->|Solo approved| B
-    C -->|No| H
+    C -->|No| F
     D -->|Yes| E
     D -->|No| F
-    E --> B
-    F -->|Yes| G
-    F -->|No| H
-    G --> H
+    E --> F
 ```
 
 ## Flow steps
 
-1. **Settings exist?** - If `.sdlc/settings.json` exists, read `review.prefix` (fallback `:robot:`), `specs.path` (fallback `.sdlc/specs`), `specs.archive_path` (fallback `.sdlc/specs/archived`), `specs.on_ship` (fallback `archive`), `task.path` (fallback `.sdlc/task`), and `task.keep` (fallback `true`), and go to step 2. If not, stop and print `Next: /setup` as the last line.
+1. **Settings exist?** - If `.sdlc/settings.json` exists, read `review.prefix` (fallback `:robot:`) and go to step 2. If not, stop and print `Next: /setup` as the last line.
 2. **Run gates** - Get the PR with `gh pr view [pr] --json number,headRefName,body,closingIssuesReferences,author` and inspect `gh pr diff <pr> --name-only`. Fast-forward the PR branch to the PR head and do not push local commits. From the repository root, run `sh .sdlc/scripts/ship_gates.sh <pr>` and show its output.
-3. **Gates pass?** - If the exit code is 0, go to step 4. If `approval` is the only failed gate, its line reads `approval: fail - no solo approval from <author>`, and `--auto` is absent, ask the maintainer in chat to approve PR `#<pr>`: on yes, post `<review.prefix> [approval] approved in chat by @<author>` with `gh pr comment <pr> --body "<review.prefix> [approval] approved in chat by @<author>"` (where `<author>` is the PR author login from step 2) and go back to step 2; on no, name the failed approval gate and go to step 8 with result `fail`. For any other failure, name each failed gate and who can clear it, then go to step 8 with result `fail`.
-4. **Spec or folder to update?** - Skip on Spec/Design-only PRs (every changed file in `gh pr diff <pr> --name-only` is under `<specs.path>/`, or `closingIssuesReferences` is empty with `Spec for #<id>` / `Design for #<id>` in the PR body). On a Code PR closing `<issue>`, check for a task spec `<specs.path>/<issue>-*.md` (excluding `*-design.md` and `<specs.archive_path>/`) when `specs.on_ship` is `archive` or `delete`, or a legacy `<task.path>/<issue>/` folder when `task.keep` is `false`. If any applies, go to step 5. If not, go to step 6.
-5. **Update spec or folder** - Apply `specs.on_ship` to the matching task spec: for `archive`, run `mkdir -p <specs.archive_path>` and `git mv <spec> <specs.archive_path>/`; for `delete`, run `git rm <spec>`. If `task.keep` is `false` and `<task.path>/<issue>/` exists, remove it with `git rm -r <task.path>/<issue>/`. Commit the change with trailer `SDLC-Spec-Archive: true`, push to the PR branch, wait with `gh pr checks <pr> --watch`, and go to step 2.
-6. **Merge confirmed?** - Choose the first merge method that `gh repo view --json squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed` allows, in that order. Without `--auto`, show the gate lines and the method, and ask the person to type `merge`. Any other answer goes to step 8 with result `fail`. With `--auto`, do not ask. Comment on the issue, or on the PR when it closes no issue, under `## Assumptions`: merged without a typed confirmation, and the method you chose.
-7. **Merge and clean up** - Run `gh pr merge <pr> --<method> --match-head-commit <head>`, where `<head>` is `git rev-parse HEAD`. If `.github/workflows/sdlc-on-merge.yml` does not exist, run `sh .sdlc/scripts/on_merge.sh <pr>`. Delete the remote branch with `git push origin --delete <branch>`. A branch that the repository already deleted is not an error. Remove the worktree of the branch and the local branch. If this session runs inside that worktree, read `references/harness.md` first.
-8. **Hand off** - Give the report from the Output section. Run `sh .sdlc/scripts/next_step.sh <pr> --after ship --result <pass|fail>`, with `--auto` if the flag is passed. Print its output as the last line.
+3. **Gates pass?** - If the exit code is 0, go to step 4. If `approval` is the only failed gate, its line reads `approval: fail - no solo approval from <author>`, and `--auto` is absent, ask the maintainer in chat to approve PR `#<pr>`: on yes, post `<review.prefix> [approval] approved in chat by @<author>` with `gh pr comment <pr> --body "<review.prefix> [approval] approved in chat by @<author>"` (where `<author>` is the PR author login from step 2) and go back to step 2; on no, name the failed approval gate and go to step 6 with result `fail`. For any other failure, name each failed gate and who can clear it, then go to step 6 with result `fail`.
+4. **Merge confirmed?** - Choose the first merge method that `gh repo view --json squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed` allows, in that order. Without `--auto`, show the gate lines and the method, and ask the person to type `merge`. Any other answer goes to step 6 with result `fail`. With `--auto`, do not ask. Comment on the issue, or on the PR when it closes no issue, under `## Assumptions`: merged without a typed confirmation, and the method you chose.
+5. **Merge and clean up** - Run `gh pr merge <pr> --<method> --match-head-commit <head>`, where `<head>` is `git rev-parse HEAD`; do not push to the PR branch before the merge. If `.github/workflows/sdlc-on-merge.yml` does not exist, run `sh .sdlc/scripts/on_merge.sh <pr>` from the repository root. After the merge, `on_merge.sh` (from the workflow or this step) sets the issue stage and, for a Code PR that changes more than `<specs.path>/`, opens one cleanup PR `sdlc/<issue>-cleanup` per closed issue into the base branch: it applies `specs.on_ship` to `<specs.path>/<issue>-*.md` (excluding `*-design.md` and `<specs.archive_path>/`) and removes `<task.path>/<issue>/` when `task.keep` is `false`, with the trailer `SDLC-Spec-Archive: true`. Show its output. When the workflow is installed, the action runs `on_merge.sh` after this skill ends: say so in the report, and that if the action run fails (for example because the repository setting "Allow GitHub Actions to create and approve pull requests" is off), running `sh .sdlc/scripts/on_merge.sh <pr>` locally is safe and opens any cleanup PR that is due. Delete the remote branch with `git push origin --delete <branch>`. A branch that the repository already deleted is not an error. Remove the worktree of the branch and the local branch. If this session runs inside that worktree, read `references/harness.md` first.
+6. **Hand off** - Give the report from the Output section. Run `sh .sdlc/scripts/next_step.sh <pr> --after ship --result <pass|fail>`, with `--auto` if the flag is passed. Print its output as the last line.
 
 ## Rules
 
@@ -64,7 +57,7 @@ flowchart TD
 
 ## Output
 
-- The merged PR. On a Code PR with `specs.on_ship` set to `archive` (default) or `delete`, the PR also moves the task spec to `<specs.archive_path>/` or removes it with `SDLC-Spec-Archive: true`.
+- The merged PR, with the approved head merged untouched. On a Code PR with `specs.on_ship` set to `archive` (default) or `delete`, or `task.keep` set to `false`, a cleanup PR `sdlc/<issue>-cleanup` per closed issue that moves the task spec to `<specs.archive_path>/` or removes it (and the task folder) with `SDLC-Spec-Archive: true`, by the on-merge action or by `on_merge.sh`. The on-merge action can open it only when the repository setting "Allow GitHub Actions to create and approve pull requests" is on; when it is off, the action fails after setting the stage. A cleanup PR opened by the action starts no CI.
 - The issue at `done` (or `shaped` for a Spec/Design PR), by the on-merge action or by `on_merge.sh`.
-- A report: the gate lines, the merge commit, and what was cleaned up.
+- A report: the gate lines, the merge commit, and the cleanup PR (or why none was opened, or that the on-merge action runs `on_merge.sh` and a local `on_merge.sh <pr>` recovers a failed run).
 - The `Next:` line as the last line.
